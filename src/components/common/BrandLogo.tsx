@@ -43,7 +43,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           <span
             className={`${dimensions.sub} font-semibold tracking-wider text-neutral-500 dark:text-neutral-400 uppercase mt-0.5`}
           >
-            Red & Agencia de Terapia
+            Encontrá tu psicólogo acá.
           </span>
         </div>
       )}

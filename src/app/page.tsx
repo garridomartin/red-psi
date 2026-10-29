@@ -11,14 +11,9 @@ import {
     Instagram,
     ArrowRight,
     ShieldCheck,
-    CheckCircle2,
-    Search,
-    MessageSquare,
     Heart,
     ChevronRight,
-    Users,
     MapPin,
-    Clock,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -46,7 +41,7 @@ export default function HomePage() {
 
                         {/* Main Headline */}
                         <h1 className='text-4xl sm:text-5xl lg:text-6xl font-extrabold font-display tracking-tight text-neutral-900 dark:text-neutral-50 leading-[1.15]'>
-                            El espacio seguro donde empieza{' '}
+                            El espacio donde empieza{' '}
                             <span className='text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-sky-400 dark:from-primary-400 dark:via-primary-300 dark:to-sky-200'>
                                 tu bienestar emocional.
                             </span>
@@ -54,9 +49,9 @@ export default function HomePage() {
 
                         {/* Subtitle */}
                         <p className='text-base sm:text-lg text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto leading-relaxed'>
-                            Somos una agencia que conecta a personas con terapeutas certificados.
+                            Somos una agencia que conecta a personas con psicólogos certificados.
                             Descubrí perfiles completos, filtrá por obra social o cercanía, y
-                            contactá sin comisiones ni intermediarios.
+                            contactá al profesional que elijas.
                         </p>
 
                         {/* Call To Actions */}
@@ -131,9 +126,8 @@ export default function HomePage() {
                             Descubrí
                         </h3>
                         <p className='text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed'>
-                            Explorá perfiles verificados filtrando por motivo de consulta (ansiedad,
-                            depresión, pareja), obra social, edad o cercanía geográfica con tu
-                            ubicación actual.
+                            Explorá perfiles verificados filtrando por, obra social, edad o cercanía
+                            geográfica con tu ubicación actual.
                         </p>
                     </div>
 
@@ -161,9 +155,8 @@ export default function HomePage() {
                             Contactá
                         </h3>
                         <p className='text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed'>
-                            Escribile directamente por WhatsApp o mediante nuestro formulario.
-                            Coordiná horarios, honorarios y modalidad sin ningún costo de
-                            intermediación.
+                            Escribile directamente por WhatsApp. Coordiná horarios, honorarios y
+                            modalidad sin ningún costo de intermediación.
                         </p>
                     </div>
                 </div>
@@ -181,7 +174,8 @@ export default function HomePage() {
                             Profesionales Destacados
                         </h2>
                         <p className='text-sm text-neutral-600 dark:text-neutral-400 mt-1'>
-                            Terapeutas con amplia trayectoria y recomendación de nuestra comunidad.
+                            Licenciados en Psicología con amplia trayectoria y recomendación de
+                            nuestra comunidad.
                         </p>
                     </div>
 
@@ -224,7 +218,7 @@ export default function HomePage() {
 
                             <p className='text-sm text-neutral-300 leading-relaxed max-w-xl'>
                                 Nuestra cuenta de Instagram es el puente que difunde el trabajo de
-                                psicólogos de toda Argentina. Encontrá cápsulas psicoeducativas,
+                                psicólogos de La Plata, Berisso y Ensenada. Encontrá cápsulas psicoeducativas,
                                 consejos para tu día a día y presentaciones en video de cada
                                 terapeuta.
                             </p>
