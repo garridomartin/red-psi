@@ -34,16 +34,19 @@ export default function ProfessionalDetailPage() {
     const [copiedLink, setCopiedLink] = useState(false);
 
     useEffect(() => {
-        if (slug) {
-            const found = getProfessionalBySlug(slug);
-            setProfessional(found || null);
+        if (!slug) return;
+
+        const load = async () => {
+            const found = await getProfessionalBySlug(slug);
+            setProfessional(found ?? null);
 
             if (found) {
-                // Find 2 related professionals
-                const all = getProfessionals().filter((p) => p.id !== found.id && p.is_active);
-                setRelated(all.slice(0, 2));
+                const all = await getProfessionals();
+                const related = all.filter((p) => p.id !== found.id && p.is_active);
+                setRelated(related.slice(0, 2));
             }
-        }
+        };
+        load();
     }, [slug]);
 
     if (professional === null) {

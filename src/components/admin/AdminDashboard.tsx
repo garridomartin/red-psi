@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Professional, Article, Specialty, Insurance, Gender, Modality } from '@/types';
 import {
     getProfessionals,
-    saveProfessionals,
     addProfessional,
     updateProfessional,
     deleteProfessional,
@@ -120,10 +119,11 @@ export const AdminDashboard: React.FC = () => {
         is_published: true,
     });
 
-    const loadAllData = () => {
-        setProfessionals(getProfessionals());
-        setArticles(getArticles());
-        setStats(getStats());
+    const loadAllData = async () => {
+        const [profs, arts] = await Promise.all([getProfessionals(), getArticles()]);
+        setProfessionals(profs);
+        setArticles(arts);
+        setStats(getStats()); // getStats sigue siendo sync (localStorage)
     };
 
     useEffect(() => {
@@ -331,7 +331,9 @@ export const AdminDashboard: React.FC = () => {
                         <span className='px-2.5 py-1 text-[11px] font-bold rounded-lg bg-primary-400 text-neutral-950'>
                             ROL: ADMINISTRADOR
                         </span>
-                        <span className='text-xs text-neutral-500'>admin@redepsilon.com</span>
+                        <span className='text-xs text-neutral-500'>
+                            natalia.garrido17@gmail.com
+                        </span>
                     </div>
                     <h2 className='text-2xl font-bold font-display text-neutral-900 dark:text-neutral-50 mt-1'>
                         Gestión de Agencia y Profesionales

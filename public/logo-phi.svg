@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="epsilonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="psiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#4CC9F0" />
       <stop offset="100%" stop-color="#1b98c3" />
     </linearGradient>
@@ -10,13 +10,12 @@
   </defs>
   <rect width="64" height="64" rx="16" fill="#0B1C2A" />
   <circle cx="32" cy="32" r="26" stroke="#4CC9F0" stroke-opacity="0.25" stroke-width="1.5" />
-  
-  <!-- Stylized Greek Epsilon (ε) representing psychological balance & connection -->
-  <path d="M 43 19 C 39 15 30 15.5 24 21 C 18 26.5 19 32 25 32 C 30 32 37 32 37 32 M 25 32 C 18 32 17 38 23 43.5 C 29 48.5 40 48.5 43 45" 
-        stroke="url(#epsilonGrad)" 
-        stroke-width="5" 
-        stroke-linecap="round" 
+
+  <!-- Letra Phi (Ψ) adaptada a la escala de 64x64 -->
+  <path d="M 22 18 C 22 26 22 35 22 37 C 22 43 26 46 32 46 C 38 46 42 43 42 37 C 42 35 42 26 42 18 M 32 30 L 32 54"
+        stroke="url(#psiGrad)"
+        stroke-width="5.4"
+        stroke-linecap="round"
         stroke-linejoin="round"
         filter="url(#softGlow)" />
-  <circle cx="39" cy="32" r="3" fill="#4CC9F0" />
 </svg>

@@ -20,10 +20,12 @@ export default function HomePage() {
     const [featuredProfessionals, setFeaturedProfessionals] = useState<Professional[]>([]);
 
     useEffect(() => {
-        const list = getProfessionals();
-        setFeaturedProfessionals(list.filter((p) => p.is_featured && p.is_active));
+        const load = async () => {
+            const list = await getProfessionals();
+            setFeaturedProfessionals(list.filter((p) => p.is_featured && p.is_active));
+        };
+        load();
     }, []);
-
     return (
         <div className='space-y-24 pb-20 overflow-hidden'>
             {/* HERO SECTION */}
@@ -218,9 +220,9 @@ export default function HomePage() {
 
                             <p className='text-sm text-neutral-300 leading-relaxed max-w-xl'>
                                 Nuestra cuenta de Instagram es el puente que difunde el trabajo de
-                                psicólogos de La Plata, Berisso y Ensenada. Encontrá cápsulas psicoeducativas,
-                                consejos para tu día a día y presentaciones en video de cada
-                                terapeuta.
+                                psicólogos de La Plata, Berisso y Ensenada. Encontrá cápsulas
+                                psicoeducativas, consejos para tu día a día y presentaciones en
+                                video de cada terapeuta.
                             </p>
 
                             <div className='pt-2 flex flex-wrap gap-4'>
@@ -242,7 +244,7 @@ export default function HomePage() {
                                 <div className='flex items-center gap-2'>
                                     <div className='w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-pink-500 p-0.5'>
                                         <div className='w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-[10px] font-bold'>
-                                            ε
+                                            Ψ
                                         </div>
                                     </div>
                                     <span className='text-xs font-bold'>psicologolaplata</span>
@@ -265,7 +267,7 @@ export default function HomePage() {
                                 <div className='flex items-center gap-2'>
                                     <div className='w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-pink-500 p-0.5'>
                                         <div className='w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-[10px] font-bold'>
-                                            ε
+                                            Ψ
                                         </div>
                                     </div>
                                     <span className='text-xs font-bold'>psicologolaplata</span>

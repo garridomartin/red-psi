@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
     is_featured BOOLEAN NOT NULL DEFAULT false,
     views_count INTEGER NOT NULL DEFAULT 0,
     contacts_count INTEGER NOT NULL DEFAULT 0,
+    whatsapp_number TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

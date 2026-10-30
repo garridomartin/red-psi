@@ -152,7 +152,7 @@ export const ProfessionalsMap: React.FC<ProfessionalsMapProps> = ({
                   font-weight: 800;
                   font-family: system-ui, sans-serif;
                 ">
-                  ε
+                  Ψ
                 </div>
               </div>
             `,

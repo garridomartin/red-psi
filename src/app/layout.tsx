@@ -3,7 +3,6 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
-import { WhatsAppFloating } from '@/components/common/WhatsAppFloating';
 import { GeoPrompt } from '@/components/common/GeoPrompt';
 
 export const metadata: Metadata = {
@@ -36,7 +35,7 @@ export const metadata: Metadata = {
             'Descubrí, compará y contactá psicólogos matriculados. Terapia presencial y online en Buenos Aires y todo el país.',
         images: [
             {
-                url: '/logo-epsilon.svg',
+                url: '/logo-phi.svg',
                 width: 800,
                 height: 800,
                 alt: 'Logo Red Épsilon Psicología',
@@ -72,7 +71,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             <main className='flex-1'>{children}</main>
                         </div>
                         <Footer />
-                        <WhatsAppFloating />
                         <GeoPrompt />
                     </div>
                 </AuthProvider>
