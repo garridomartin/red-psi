@@ -173,7 +173,7 @@ export const AdminDashboard: React.FC = () => {
             title: prof.title || '',
             license: prof.license || '',
             bio: prof.bio,
-            photo_url: prof.photo_url,
+            photo_url: prof.photo_url || '',
             gender: prof.gender,
             age: prof.age,
             specialties: prof.specialties,
@@ -195,8 +195,9 @@ export const AdminDashboard: React.FC = () => {
         setActiveTab('create-prof');
     };
 
-    const handleSaveProf = (e: React.FormEvent) => {
+    const handleSaveProf = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('🔵 [AdminDashboard] Iniciando guardado de profesional...');
 
         // Generate slug
         const generatedSlug = profFormData.name
@@ -208,35 +209,43 @@ export const AdminDashboard: React.FC = () => {
 
         const validated = professionalSchema.safeParse(profFormData);
         if (!validated.success) {
+            console.warn('🔴 [AdminDashboard] Validación fallida:', validated.error.issues);
             const firstError =
                 validated.error.issues[0]?.message || 'Verificá los datos del formulario';
             showNotification('error', firstError);
             return;
         }
 
-        if (editingProfId) {
-            updateProfessional(editingProfId, {
-                ...profFormData,
-                slug: generatedSlug,
-            });
-            showNotification(
-                'success',
-                `Profesional "${profFormData.name}" actualizado correctamente.`,
-            );
-        } else {
-            addProfessional({
-                ...profFormData,
-                slug: generatedSlug,
-            });
-            showNotification(
-                'success',
-                `Nuevo profesional "${profFormData.name}" registrado con éxito.`,
-            );
-        }
+        console.log('🟢 [AdminDashboard] Validación exitosa. Datos a guardar:', {
+            ...profFormData,
+            slug: generatedSlug,
+        });
 
-        resetProfForm();
-        loadAllData();
-        setActiveTab('list');
+        try {
+            if (editingProfId) {
+                console.log('🟢 [AdminDashboard] Editando profesional...');
+                await updateProfessional(editingProfId, {
+                    ...profFormData,
+                    slug: generatedSlug,
+                });
+                showNotification('success', `Profesional "${profFormData.name}" actualizado.`);
+            } else {
+                console.log('🟢 [AdminDashboard] Creando profesional nuevo...');
+                await addProfessional({
+                    ...profFormData,
+                    slug: generatedSlug,
+                });
+                showNotification('success', `Nuevo profesional "${profFormData.name}" registrado.`);
+            }
+            console.log('✅ [AdminDashboard] Guardado exitoso. Recargando datos...');
+
+            resetProfForm();
+            await loadAllData();
+            setActiveTab('list');
+        } catch (err: any) {
+            console.error('🔴 [AdminDashboard] Error al guardar:', err.message);
+            showNotification('error', `Error al guardar: ${err.message}`);
+        }
     };
 
     const handleDeleteProf = (id: string, name: string) => {

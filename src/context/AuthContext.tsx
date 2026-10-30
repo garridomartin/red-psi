@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, UserRole } from '@/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, getAuthClient } from '@/lib/supabase';
 
 interface AuthContextType {
     user: User | null;
@@ -44,15 +44,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const loadFavorites = async (userId: string) => {
+        const { data, error } = await supabase
+            .from('favorites')
+            .select('professional_id')
+            .eq('user_id', userId);
+
+        if (!error && data) {
+            const favIds = data.map((f) => f.professional_id);
+            setFavorites(favIds);
+        }
+    };
+
     useEffect(() => {
         const savedToken = localStorage.getItem('red_epsilon_jwt');
         const savedUser = localStorage.getItem(USER_STORAGE_KEY);
         if (savedToken && savedUser) {
+            const parsedUser = JSON.parse(savedUser);
             setToken(savedToken);
-            setUser(JSON.parse(savedUser));
+            setUser(parsedUser);
+            loadFavorites(parsedUser.id); // <-- Carga los favoritos desde la DB
         }
         setIsLoading(false);
     }, []);
+
+    const toggleFavorite = async (professionalId: string) => {
+        console.log('🟢 [toggleFavorite] Click en favorito. Profesional ID:', professionalId);
+        console.log('🟢 [toggleFavorite] Usuario actual:', user);
+
+        if (!user) {
+            console.warn('🔴 [toggleFavorite] No hay usuario logueado. Cancelando.');
+            return;
+        }
+        const exists = favorites.includes(professionalId);
+        console.log('🟢 [toggleFavorite] ¿Ya era favorito?', exists);
+
+        const newFavorites = exists
+            ? favorites.filter((id) => id !== professionalId)
+            : [...favorites, professionalId];
+
+        setFavorites(newFavorites);
+
+        const authSupabase = getAuthClient();
+        console.log('🟢 [toggleFavorite] Cliente Supabase creado. Intentando guardar en DB...');
+
+        try {
+            if (exists) {
+                const { error, count } = await authSupabase
+                    .from('favorites')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('professional_id', professionalId);
+                if (error) throw error;
+                console.log('✅ [toggleFavorite] Favorito borrado de la DB');
+                console.log('✅ [toggleFavorite] Favorito borrado. Filas afectadas:', count);
+            } else {
+                const { error } = await authSupabase.from('favorites').insert({
+                    user_id: user.id,
+                    professional_id: professionalId,
+                });
+                if (error) throw error;
+                console.log('✅ [toggleFavorite] Favorito guardado en la DB');
+            }
+        } catch (error: any) {
+            console.error('🔴 [toggleFavorite] Error al guardar favorito en DB:', error);
+            setFavorites(favorites); // Revertir
+        }
+    };
 
     const loginWithGoogle = async (credential: string) => {
         setIsLoading(true);
@@ -97,21 +155,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(null);
         localStorage.removeItem('red_epsilon_jwt');
         localStorage.removeItem(USER_STORAGE_KEY);
-    };
-
-    const toggleFavorite = (professionalId: string) => {
-        if (!user) {
-            return;
-        }
-        const exists = favorites.includes(professionalId);
-        let updated: string[];
-        if (exists) {
-            updated = favorites.filter((id) => id !== professionalId);
-        } else {
-            updated = [...favorites, professionalId];
-        }
-        setFavorites(updated);
-        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated));
     };
 
     const isFavorite = (professionalId: string) => {

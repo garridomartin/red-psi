@@ -42,14 +42,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const professionalRoutes: MetadataRoute.Sitemap = professionals.map((p) => ({
         url: `${baseUrl}/profesionales/${p.slug}`,
-        lastModified: new Date(p.updated_at || p.created_at),
+        lastModified: new Date(p.updated_at || p.created_at || new Date()),
         changeFrequency: 'weekly',
         priority: 0.85,
     }));
 
     const articleRoutes: MetadataRoute.Sitemap = articles.map((a) => ({
         url: `${baseUrl}/articulos/${a.slug}`,
-        lastModified: new Date(a.published_at),
+        lastModified: new Date(a.published_at || a.created_at || new Date()),
         changeFrequency: 'monthly',
         priority: 0.7,
     }));
