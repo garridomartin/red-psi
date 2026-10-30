@@ -13,6 +13,7 @@ import {
     addArticle,
     deleteArticle,
     getStats,
+    updateArticle,
     AppStats,
 } from '@/lib/data/dataStore';
 import { SPECIALTIES_CATALOG, INSURANCES_CATALOG } from '@/lib/data/mockData';
@@ -44,6 +45,8 @@ export const AdminDashboard: React.FC = () => {
     );
     const [professionals, setProfessionals] = useState<Professional[]>([]);
     const [articles, setArticles] = useState<Article[]>([]);
+
+    const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
     const [stats, setStats] = useState<AppStats>({
         totalViews: 0,
         totalContacts: 0,
@@ -266,8 +269,9 @@ export const AdminDashboard: React.FC = () => {
         loadAllData();
     };
 
-    const handleCreateArticle = (e: React.FormEvent) => {
+    const handleCreateArticle = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const slug = articleFormData.title
             .toLowerCase()
             .normalize('NFD')
@@ -277,32 +281,41 @@ export const AdminDashboard: React.FC = () => {
 
         const validated = articleSchema.safeParse(articleFormData);
         if (!validated.success) {
-            showNotification(
-                'error',
-                validated.error.issues[0]?.message || 'Verificá los datos del artículo',
-            );
+            showNotification('error', validated.error.issues[0]?.message || 'Verificá los datos');
             return;
         }
 
-        addArticle({
-            ...articleFormData,
-            slug,
-        });
+        try {
+            if (editingArticleId) {
+                // MODO EDICIÓN
+                await updateArticle(editingArticleId, { ...articleFormData, slug });
+                showNotification('success', 'Artículo actualizado con éxito.');
+                setEditingArticleId(null);
+            } else {
+                // MODO CREACIÓN
+                await addArticle({ ...articleFormData, slug });
+                showNotification('success', 'Artículo publicado con éxito.');
+            }
 
-        showNotification('success', 'Artículo publicado con éxito.');
-        setArticleFormData({
-            title: '',
-            slug: '',
-            cover_url: '',
-            excerpt: '',
-            content: '',
-            author: 'Equipo Editorial Psicologos La Plata',
-            author_role: 'Psicología & Divulgación',
-            reading_time_minutes: 5,
-            tags: ['Salud Mental'],
-            is_published: true,
-        });
-        loadAllData();
+            // Limpiar formulario
+            setArticleFormData({
+                title: '',
+                slug: '',
+                cover_url:
+                    'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
+                excerpt: '',
+                content: '',
+                author: 'Equipo Editorial Psicologos La Plata',
+                author_role: 'Psicología & Divulgación',
+                reading_time_minutes: 5,
+                tags: ['Salud Mental', 'Terapia'],
+                is_published: true,
+            });
+
+            await loadAllData();
+        } catch (err: any) {
+            showNotification('error', `Error al guardar: ${err.message}`);
+        }
     };
 
     const handleDeleteArticle = (id: string, title: string) => {

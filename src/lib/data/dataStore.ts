@@ -142,6 +142,8 @@ export async function toggleActiveProfessional(id: string) {
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
+// --- ARTÍCULOS ---
+
 export async function addArticle(data: Omit<Article, 'id'>) {
     const authSupabase = getSupabaseWithAuth();
     const newId = `art-${Date.now()}`;
@@ -155,6 +157,15 @@ export async function addArticle(data: Omit<Article, 'id'>) {
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
+// 👇 NUEVA FUNCIÓN PARA EDITAR ARTÍCULOS
+export async function updateArticle(id: string, data: Partial<Article>) {
+    const authSupabase = getSupabaseWithAuth();
+    const { error } = await authSupabase.from('articles').update(data).eq('id', id);
+
+    if (error) throw new Error(error.message);
+    window.dispatchEvent(new Event('red_epsilon_data_changed'));
+}
+
 export async function deleteArticle(id: string) {
     const authSupabase = getSupabaseWithAuth();
     const { error } = await authSupabase.from('articles').delete().eq('id', id);
@@ -163,7 +174,9 @@ export async function deleteArticle(id: string) {
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
-// Al final de src/lib/data/dataStore.ts
+// ==========================================
+// HELPERS LOCALES (Stats)
+// ==========================================
 
 export interface AppStats {
     totalViews: number;
@@ -173,8 +186,6 @@ export interface AppStats {
 
 export function incrementContactCount(professionalId?: string) {
     if (typeof window === 'undefined') return;
-    // El professionalId no se usa para el contador global, pero lo aceptamos
-    // para no romper la llamada desde ContactModal
     const stats: AppStats = JSON.parse(
         localStorage.getItem('red_epsilon_stats_v1') ||
             '{"totalViews":0,"totalContacts":0,"totalFavorites":0}',
