@@ -51,9 +51,9 @@ export default function HomePage() {
 
                         {/* Subtitle */}
                         <p className='text-base sm:text-lg text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto leading-relaxed'>
-                            Somos una agencia que conecta a personas con psicólogos certificados.
-                            Descubrí perfiles completos, filtrá por obra social o cercanía, y
-                            contactá al profesional que elijas.
+                            Conectamos personas con psicólogos independientes que trabajan en
+                            distintos puntos de La Plata. Mirás sus perfiles, filtrás por obra
+                            social o ubicación y hablás directamente con el profesional que elijas.
                         </p>
 
                         {/* Call To Actions */}
