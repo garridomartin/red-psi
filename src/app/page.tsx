@@ -157,8 +157,7 @@ export default function HomePage() {
                             Contactá
                         </h3>
                         <p className='text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed'>
-                            Escribile directamente por WhatsApp. Coordiná horarios, honorarios y
-                            modalidad sin ningún costo de intermediación.
+                            Escribile directamente por WhatsApp. Coordiná horarios y modalidad.
                         </p>
                     </div>
                 </div>
@@ -291,7 +290,7 @@ export default function HomePage() {
             </section>
 
             {/* WHY CHOOSE US */}
-            <section className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+            {/*    <section className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='text-center max-w-2xl mx-auto mb-14 space-y-3'>
                     <span className='text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400'>
                         Nuestros pilares
@@ -335,7 +334,7 @@ export default function HomePage() {
                             <Heart className='w-5 h-5' />
                         </div>
                         <h3 className='font-bold text-base text-neutral-900 dark:text-neutral-100'>
-                            Trato Humano y Sin Trabas
+                            Encuadre a medida, sin intermediarios
                         </h3>
                         <p className='text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed'>
                             No retenemos pagos ni forzamos suscripciones mensuales. Hablás
@@ -343,7 +342,7 @@ export default function HomePage() {
                         </p>
                     </div>
                 </div>
-            </section>
+            </section> */}
         </div>
     );
 }
