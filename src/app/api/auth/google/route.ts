@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OAuth2Client } from 'google-auth-library';
-import { SignJWT } from 'jose';
 import { createClient } from '@supabase/supabase-js';
 
 const googleClient = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
-// Cliente Supabase con rol de servicio (para bypasear RLS al buscar/crear usuarios)
-// Usamos la anon key porque en local las policies de users son públicas para SELECT
-// Para INSERT de usuarios nuevos, PostgREST necesita un rol que pueda escribir.
-// Como en local no hay service_role, usamos el JWT de admin hardcodeado temporalmente
-// o directamente el secret de PostgREST para firmar un JWT efímero con role:"admin".
-// Para simplificar en local: firmamos un JWT interno con role:"admin" y lo usamos para el upsert.
+// Cliente de Supabase con permisos de administrador (service_role)
+// Esto saltea RLS y nos permite hacer upsert en public.users
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // 👈 Ahora sí usamos la service role key
+);
 
 export async function POST(req: NextRequest) {
     try {
@@ -32,23 +30,11 @@ export async function POST(req: NextRequest) {
 
         const { email, sub: googleSub, name, picture } = payload;
 
-        // 2. Buscar o crear usuario en public.users
-        // Para escribir en users necesitamos un JWT con role:"admin" (porque no hay service_role en local)
-        // Firmamos un JWT efímero solo para esta operación interna
-        const internalAdminToken = await new SignJWT({ role: 'admin' })
-            .setProtectedHeader({ alg: 'HS256' })
-            .setExpirationTime('1m')
-            .sign(jwtSecret);
-
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabase = createClient(supabaseUrl, internalAdminToken, {
-            global: { headers: { Authorization: `Bearer ${internalAdminToken}` } },
-        });
-
+        // 2. Buscar o crear usuario en public.users usando el cliente admin
         // Buscar por google_sub o por email
-        let { data: user, error: findError } = await supabase
+        let { data: user, error: findError } = await supabaseAdmin
             .from('users')
-            .select('id, email, name, role, google_sub, avatar_url') // <-- ACÁ AGREGAMOS avatar_url
+            .select('id, email, name, role, google_sub, avatar_url')
             .or(`google_sub.eq.${googleSub},email.eq.${email}`)
             .maybeSingle();
 
@@ -56,7 +42,7 @@ export async function POST(req: NextRequest) {
 
         if (!user) {
             // Crear usuario nuevo como 'user'
-            const { data: newUser, error: insertError } = await supabase
+            const { data: newUser, error: insertError } = await supabaseAdmin
                 .from('users')
                 .insert({
                     email,
@@ -72,7 +58,7 @@ export async function POST(req: NextRequest) {
             user = newUser;
         } else if (!user.google_sub) {
             // Usuario existente (como Natalia) sin google_sub: actualizarlo
-            const { data: updatedUser, error: updateError } = await supabase
+            const { data: updatedUser, error: updateError } = await supabaseAdmin
                 .from('users')
                 .update({ google_sub: googleSub, avatar_url: picture || user.avatar_url })
                 .eq('id', user.id)
@@ -83,28 +69,21 @@ export async function POST(req: NextRequest) {
             user = updatedUser;
         }
 
-        // 3. Firmar el JWT final para el usuario (con su role real y sub = user.id)
-        // Usamos un cast a 'any' acá para que TypeScript no se queje
-        // de las propiedades dinámicas del select.
-        const userPayload = user as any;
+        // 👇 ACÁ ESTÁ LA SOLUCIÓN: Verificación explícita para TypeScript
+        if (!user) {
+            return NextResponse.json(
+                { error: 'No se pudo crear o encontrar el usuario' },
+                { status: 500 },
+            );
+        }
 
-        const token = await new SignJWT({
-            role: userPayload.role, // "admin" para Natalia, "user" para el resto
-            sub: userPayload.id, // UUID de public.users → auth.uid() en PostgREST
-            email: userPayload.email,
-        })
-            .setProtectedHeader({ alg: 'HS256' })
-            .setIssuedAt()
-            .setExpirationTime('7d')
-            .sign(jwtSecret);
-
+        // 3. Devolver los datos del usuario al frontend (SIN firmar JWT propio)
         return NextResponse.json({
-            token,
             user: {
-                id: userPayload.id,
-                email: userPayload.email,
-                name: userPayload.name,
-                role: userPayload.role,
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
             },
         });
     } catch (err: any) {

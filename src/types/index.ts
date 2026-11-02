@@ -56,6 +56,7 @@ export interface Professional {
     approach?: string; // e.g. "Cognitivo-Conductual", "Psicoanalítico"
     created_at?: string;
     updated_at?: string;
+    deleted_at?: string;
 }
 
 export interface Article {
@@ -73,6 +74,7 @@ export interface Article {
     created_at?: string; // <-- Por las dudas
     updated_at?: string;
     is_published: boolean;
+    deleted_at?: string;
 }
 
 export interface FilterState {

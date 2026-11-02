@@ -1,3 +1,4 @@
+--schema.sql
 -- ==============================================================================
 -- RED ÉPSILON - ESQUEMA DE BASE DE DATOS POSTGRESQL / SUPABASE
 -- ==============================================================================
@@ -61,8 +62,10 @@ CREATE TABLE IF NOT EXISTS public.professionals (
     contacts_count INTEGER NOT NULL DEFAULT 0,
     whatsapp_number TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
+
 
 -- 5. Tabla de Favoritos (PK Compuesta user_id, professional_id)
 CREATE TABLE IF NOT EXISTS public.favorites (
@@ -87,7 +90,8 @@ CREATE TABLE IF NOT EXISTS public.articles (
     is_published BOOLEAN NOT NULL DEFAULT true,
     published_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 -- 7. Registro de Derivaciones y Contactos (Con rate-limiting / métricas)
@@ -112,6 +116,9 @@ CREATE INDEX IF NOT EXISTS idx_professionals_is_active ON public.professionals(i
 CREATE INDEX IF NOT EXISTS idx_professionals_lat_lng ON public.professionals(lat, lng);
 CREATE INDEX IF NOT EXISTS idx_articles_slug ON public.articles(slug);
 CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON public.favorites(user_id);
+-- Índices parciales para soft delete
+CREATE INDEX IF NOT EXISTS idx_professionals_visible ON public.professionals (id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_articles_visible ON public.articles (id) WHERE deleted_at IS NULL;
 
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES

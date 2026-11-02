@@ -1,3 +1,4 @@
+--seed.sql
 -- ============================================================
 -- SEED DE DESARROLLO - RED ÉPSILON
 -- Basado en mockData.ts + types/index.ts
@@ -53,7 +54,7 @@ INSERT INTO public.professionals (
   id, name, slug, title, license, bio, photo_url, gender, age, birth_date,
   specialties, insurances, modality, address, neighborhood, city, lat, lng,
   instagram_url, contact_email, contact_phone, whatsapp_number,
-  session_price, approach, is_active, is_featured, created_at, updated_at
+  session_price, approach, is_active, is_featured, created_at, updated_at, deleted_at
 ) VALUES
 (
   'prof-1', 'Lic. Sofía Valenzuela', 'lic-sofia-valenzuela',
@@ -184,12 +185,25 @@ INSERT INTO public.professionals (
   'https://instagram.com/lic.paulamendez', 'paula.mendez.perinatal@gmail.com', '+5491156723456', '5491156723456',
   '$26.000 / sesión', 'Perinatal y Vínculos Tempranos', true, true,
   '2024-03-20T17:00:00Z', '2024-06-10T12:00:00Z'
+),
+(
+  'prof-pausado-1', 'Lic. Ejemplo Pausado', 'lic-ejemplo-pausado',
+  'Licenciado en Psicología (ejemplo)', 'M.N. 00.000',
+  'Registro de prueba con deleted_at seteado para verificar el flujo de soft delete en el dashboard.',
+  'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=800&q=80',
+  'masculino', 40, '1985-01-01',
+  ARRAY['Psicoanálisis'], ARRAY['Particular'],
+  'online', 'Dirección de ejemplo', 'Palermo', 'Buenos Aires', -34.5885, -58.4112,
+  'https://instagram.com/ejemplo', 'ejemplo@redepsilon.com', '+5491100000000', '5491100000000',
+  '$0 / sesión', 'Ejemplo', true, false,
+  '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z',
+  '2026-02-02T15:30:00Z'   -- 👈 ya pausado
 );
 
 -- 6) ARTÍCULOS (5)
 INSERT INTO public.articles (
   id, title, slug, cover_url, excerpt, content, author, author_role,
-  reading_time_minutes, tags, is_published, published_at
+  reading_time_minutes, tags, is_published, published_at, deleted_at
 ) VALUES
 (
   'art-1',
@@ -283,6 +297,15 @@ Un límite no es una agresión ni un muro de distanciamiento; es un manual de in
   'Lic. Camila Restrepo', 'Terapeuta Sistémica y Familiar',
   6, ARRAY['Vínculos', 'Autoestima', 'Comunicación'], true,
   '2024-06-08T15:00:00Z'
+),
+(
+  'art-pausado-1', 'Artículo de ejemplo pausado', 'articulo-ejemplo-pausado',
+  'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=1200&q=80',
+  'Este artículo está pausado para probar el filtro del dashboard.',
+  'Contenido de ejemplo. Este registro tiene deleted_at seteado.',
+  'Admin', 'Admin',
+  1, ARRAY['Ejemplo'], true, '2026-02-02T15:30:00Z',
+  '2026-02-02T15:30:00Z'   -- 👈 ya pausado
 );
 
 -- 7) VERIFICACIÓN RÁPIDA (opcional, podés comentar estas líneas si no querés output)

@@ -5,37 +5,17 @@ const nextConfig = {
     transpilePackages: ['leaflet', 'react-leaflet'],
     images: {
         remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'images.unsplash.com',
-            },
-            {
-                protocol: 'https',
-                hostname: '**.supabase.co',
-            },
-            {
-                protocol: 'https',
-                hostname: 'plus.unsplash.com',
-            },
-            {
-                protocol: 'https',
-                hostname: 'randomuser.me',
-            },
+            { protocol: 'https', hostname: 'images.unsplash.com' },
+            { protocol: 'https', hostname: '**.supabase.co' },
+            { protocol: 'https', hostname: 'plus.unsplash.com' },
+            { protocol: 'https', hostname: 'randomuser.me' },
         ],
     },
     webpack: (config) => {
         config.externals = [...(config.externals || []), { canvas: 'canvas' }];
         return config;
     },
-    async rewrites() {
-        return [
-            {
-                source: '/rest/v1/:path*',
-                destination: 'http://localhost:3001/:path*',
-            },
-        ];
-    },
-    // 👇 ACÁ AGREGAMOS LA SOLUCIÓN PARA EL POPUP DE GOOGLE
+    // 👇 SOLUCIÓN PARA EL POPUP DE GOOGLE (se queda)
     async headers() {
         return [
             {
