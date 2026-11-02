@@ -101,8 +101,8 @@ export const AdminDashboard: React.FC = () => {
         lng: -58.3816,
         instagram_url: 'https://instagram.com/',
         contact_email: '',
-        contact_phone: '+54911',
-        session_price: '$20.000 / sesión',
+        contact_phone: '+549221',
+        session_price: '$40.000 / sesión',
         approach: '',
         is_active: true,
         is_featured: false,
@@ -154,7 +154,7 @@ export const AdminDashboard: React.FC = () => {
 
     const buscarMatricula = (matricula: string) => {
         // Limpiar timeout anterior
-        console.log('🔵 [buscarMatricula] Iniciada con:', matricula);
+
         if (matriculaDebounceRef.current) {
             clearTimeout(matriculaDebounceRef.current);
         }
@@ -162,7 +162,6 @@ export const AdminDashboard: React.FC = () => {
         const limpia = matricula.replace(/\D/g, '');
 
         if (limpia.length < 3) {
-            console.log('🔵 [buscarMatricula] Muy corta, abortando búsqueda.');
             setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
             return;
         }
@@ -171,13 +170,11 @@ export const AdminDashboard: React.FC = () => {
 
         matriculaDebounceRef.current = setTimeout(async () => {
             try {
-                console.log('🟢 [buscarMatricula] Disparando fetch para:', limpia);
                 const res = await fetch(
                     `/api/matriculas/buscar?matricula=${encodeURIComponent(limpia)}`,
                 );
-                console.log('🟢 [buscarMatricula] Status de respuesta:', res.status);
+
                 const data = await res.json();
-                console.log('🟢 [buscarMatricula] Datos recibidos:', data);
 
                 if (data.found) {
                     setMatriculaStatus({
@@ -209,7 +206,7 @@ export const AdminDashboard: React.FC = () => {
         setProfFormData({
             name: '',
             title: 'Licenciada/o en Psicología',
-            license: 'M.N. ',
+            license: '',
             bio: '',
             photo_url: '',
             gender: 'femenino',
@@ -224,8 +221,8 @@ export const AdminDashboard: React.FC = () => {
             lng: -58.3816,
             instagram_url: 'https://instagram.com/',
             contact_email: '',
-            contact_phone: '+54911',
-            session_price: '$22.000 / sesión',
+            contact_phone: '+549221',
+            session_price: '$32.000 / sesión',
             approach: 'Integrativo y Basado en Evidencia',
             is_active: true,
             is_featured: false,
@@ -248,7 +245,7 @@ export const AdminDashboard: React.FC = () => {
             modality: prof.modality,
             address: prof.address,
             neighborhood: prof.neighborhood || '',
-            city: prof.city || 'Buenos Aires',
+            city: prof.city || 'La Plata',
             lat: prof.lat,
             lng: prof.lng,
             instagram_url: prof.instagram_url,
@@ -264,7 +261,6 @@ export const AdminDashboard: React.FC = () => {
 
     const handleSaveProf = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('🔵 [AdminDashboard] Iniciando guardado de profesional...');
 
         // Generate slug
         const generatedSlug = profFormData.name
@@ -283,28 +279,20 @@ export const AdminDashboard: React.FC = () => {
             return;
         }
 
-        console.log('🟢 [AdminDashboard] Validación exitosa. Datos a guardar:', {
-            ...profFormData,
-            slug: generatedSlug,
-        });
-
         try {
             if (editingProfId) {
-                console.log('🟢 [AdminDashboard] Editando profesional...');
                 await updateProfessional(editingProfId, {
                     ...profFormData,
                     slug: generatedSlug,
                 });
                 showNotification('success', `Profesional "${profFormData.name}" actualizado.`);
             } else {
-                console.log('🟢 [AdminDashboard] Creando profesional nuevo...');
                 await addProfessional({
                     ...profFormData,
                     slug: generatedSlug,
                 });
                 showNotification('success', `Nuevo profesional "${profFormData.name}" registrado.`);
             }
-            console.log('✅ [AdminDashboard] Guardado exitoso. Recargando datos...');
 
             resetProfForm();
             await loadAllData();
@@ -417,9 +405,7 @@ export const AdminDashboard: React.FC = () => {
                         <span className='px-2.5 py-1 text-[11px] font-bold rounded-lg bg-primary-400 text-neutral-950'>
                             ROL: ADMINISTRADOR
                         </span>
-                        <span className='text-xs text-neutral-500'>
-                            natalia.garrido17@gmail.com
-                        </span>
+                        <span className='text-xs text-neutral-500'>{}</span>
                     </div>
                     <h2 className='text-2xl font-bold font-display text-neutral-900 dark:text-neutral-50 mt-1'>
                         Gestión de Agencia y Profesionales
@@ -628,14 +614,12 @@ export const AdminDashboard: React.FC = () => {
                                 value={profFormData.license}
                                 onChange={(e) => {
                                     const value = e.target.value;
-                                    console.log('🟡 [Input Matrícula] Escribiendo:', value);
+
                                     setProfFormData({ ...profFormData, license: value });
-                                    console.log(
-                                        '🟡 [Input Matrícula] Llamando a buscarMatricula...',
-                                    );
+
                                     buscarMatricula(value);
                                 }}
-                                placeholder='Ej: 48912 o M.N. 48.912'
+                                placeholder='Ej: 48912'
                                 className='w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
                             />
 

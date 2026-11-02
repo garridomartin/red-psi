@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300;
+export const maxDuration = 300; // 5 minutos por seguridad para el lote grande
 
 interface MatriculaRecord {
     matricula: string;
@@ -11,21 +11,16 @@ interface MatriculaRecord {
 
 function parsePadronHtml(html: string): MatriculaRecord[] {
     const records: MatriculaRecord[] = [];
-
-    // Regex para encontrar todas las filas <tr> y capturar su contenido
     const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
     let trMatch: RegExpExecArray | null;
 
     while ((trMatch = trRegex.exec(html)) !== null) {
         const rowHtml = trMatch[1];
-
-        // Extraer las celdas <td>
         const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
         const cells: string[] = [];
         let tdMatch: RegExpExecArray | null;
 
         while ((tdMatch = tdRegex.exec(rowHtml)) !== null) {
-            // Limpiar etiquetas HTML internas y espacios extra
             const text = tdMatch[1]
                 .replace(/<[^>]+>/g, '')
                 .replace(/&nbsp;/gi, ' ')
@@ -34,20 +29,17 @@ function parsePadronHtml(html: string): MatriculaRecord[] {
             cells.push(text);
         }
 
-        // Si la fila tiene al menos 3 columnas (Matrícula, Nombre, Distrito)
         if (cells.length >= 3) {
-            const matriculaRaw = cells[0]; // "MP-048593"
-            const nombre = cells[1]; // "LUCIA GAYONE"
-            const distritoRaw = cells[2]; // "X - Mar del Plata" o "XI - La Plata"
+            const matriculaRaw = cells[0];
+            const nombre = cells[1];
+            const distritoRaw = cells[2];
 
-            // FILTRO: Solo guardamos si el distrito empieza con "XI " o es exactamente "XI"
-            // Usamos \b para asegurar que no matchee "XII" o "XIII"
             const isDistritoXI = /^XI\b/i.test(distritoRaw);
 
             if (isDistritoXI) {
-                // Limpiamos la matrícula quitando el "MP-" y ceros a la izquierda
-                // "MP-048593" -> "48593"
-                const matriculaLimpia = matriculaRaw.replace(/^MP-0*/i, '').trim();
+                // Normalización a 6 dígitos (alineada con el buscador)
+                const digitosMatricula = matriculaRaw.replace(/^MP-/i, '').replace(/\D/g, '');
+                const matriculaLimpia = digitosMatricula.padStart(6, '0');
 
                 if (matriculaLimpia && nombre) {
                     records.push({
@@ -59,7 +51,7 @@ function parsePadronHtml(html: string): MatriculaRecord[] {
         }
     }
 
-    // Deduplicar por matrícula (por si el HTML tiene filas repetidas)
+    // Deduplicar por matrícula
     const map = new Map<string, MatriculaRecord>();
     for (const r of records) {
         map.set(r.matricula, r);
@@ -69,6 +61,7 @@ function parsePadronHtml(html: string): MatriculaRecord[] {
 }
 
 export async function GET(request: NextRequest) {
+    // Seguridad para Vercel Cron
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
@@ -129,7 +122,9 @@ export async function GET(request: NextRequest) {
             inserted += batch.length;
         }
 
-        console.log(`[cron/actualizar-padron] Completado. ${inserted} registros upserted.`);
+        console.log(
+            `[cron/actualizar-padron] Completado. ${inserted} registros guardados en Supabase.`,
+        );
         return Response.json({
             success: true,
             totalParsed: records.length,
