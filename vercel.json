@@ -1,0 +1,8 @@
+{
+    "crons": [
+      {
+        "path": "/api/cron/actualizar-padron",
+        "schedule": "0 3 1 * *"
+      }
+    ]
+  }

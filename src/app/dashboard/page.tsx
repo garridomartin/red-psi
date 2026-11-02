@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
-import { ShieldAlert, ShieldCheck, ArrowRight, UserCheck } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 
 export default function DashboardPage() {
     const { user, isAdmin, loginAsAdmin } = useAuth();

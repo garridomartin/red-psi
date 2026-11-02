@@ -177,3 +177,49 @@ CREATE POLICY "Cualquiera puede registrar un intento de contacto" ON public.cont
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('professionals-photos', 'professionals-photos', true);
 -- CREATE POLICY "Lectura publica de fotos" ON storage.objects FOR SELECT USING (bucket_id = 'professionals-photos');
 -- CREATE POLICY "Subida de fotos por admin" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'professionals-photos' AND auth.jwt() ->> 'role' = 'admin');
+
+
+
+-- ==========================================
+-- TABLA: matriculas (padrón de profesionales)
+-- ==========================================
+
+create table if not exists public.matriculas (
+  id uuid primary key default gen_random_uuid(),
+  matricula text not null unique,
+  nombre text not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Índice para búsquedas rápidas por matrícula
+create index if not exists idx_matriculas_matricula on public.matriculas (matricula);
+
+-- RLS: lectura pública (el admin necesita leer para autocompletar)
+alter table public.matriculas enable row level security;
+
+-- Cualquiera puede leer el padrón (solo contiene matrícula + nombre público)
+create policy "matriculas_select_public"
+  on public.matriculas
+  for select
+  to anon, authenticated
+  using (true);
+
+-- Solo service_role puede insertar/actualizar (el cron usa service_role)
+-- No creamos policies de insert/update para anon/authenticated,
+-- así que solo el service_role (que bypassea RLS) puede escribir.
+
+-- Trigger para updated_at
+create or replace function public.handle_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_matriculas_updated_at on public.matriculas;
+create trigger trg_matriculas_updated_at
+  before update on public.matriculas
+  for each row
+  execute function public.handle_updated_at();

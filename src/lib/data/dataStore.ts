@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+//dataStore.ts
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Professional, Article } from '@/types';
 import { MOCK_PROFESSIONALS, MOCK_ARTICLES } from './mockData';

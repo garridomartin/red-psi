@@ -1,3 +1,4 @@
+//AdminDashboard.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -122,6 +123,13 @@ export const AdminDashboard: React.FC = () => {
         is_published: true,
     });
 
+    // Estado para validación de matrícula
+    const [matriculaStatus, setMatriculaStatus] = useState<{
+        checking: boolean;
+        found: boolean | null;
+        nombreSugerido: string | null;
+    }>({ checking: false, found: null, nombreSugerido: null });
+
     const loadAllData = async () => {
         const [profs, arts] = await Promise.all([getProfessionals(), getArticles()]);
         setProfessionals(profs);
@@ -139,6 +147,55 @@ export const AdminDashboard: React.FC = () => {
     const showNotification = (type: 'success' | 'error', text: string) => {
         setFeedbackMsg({ type, text });
         setTimeout(() => setFeedbackMsg(null), 4000);
+    };
+
+    // Debounce ref para no spamear la API
+    const matriculaDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    const buscarMatricula = (matricula: string) => {
+        // Limpiar timeout anterior
+        if (matriculaDebounceRef.current) {
+            clearTimeout(matriculaDebounceRef.current);
+        }
+
+        const limpia = matricula.replace(/\D/g, '');
+
+        if (limpia.length < 3) {
+            setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
+            return;
+        }
+
+        setMatriculaStatus({ checking: true, found: null, nombreSugerido: null });
+
+        matriculaDebounceRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch(
+                    `/api/matriculas/buscar?matricula=${encodeURIComponent(limpia)}`,
+                );
+                const data = await res.json();
+
+                if (data.found) {
+                    setMatriculaStatus({
+                        checking: false,
+                        found: true,
+                        nombreSugerido: data.nombre,
+                    });
+                    // Autocompletar el nombre solo si está vacío o si el usuario no lo tocó
+                    setProfFormData((prev) => ({
+                        ...prev,
+                        name: prev.name.trim() === '' ? data.nombre : prev.name,
+                    }));
+                } else {
+                    setMatriculaStatus({
+                        checking: false,
+                        found: false,
+                        nombreSugerido: null,
+                    });
+                }
+            } catch {
+                setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
+            }
+        }, 500); // 500ms debounce
     };
 
     const resetProfForm = () => {
@@ -167,6 +224,7 @@ export const AdminDashboard: React.FC = () => {
             is_active: true,
             is_featured: false,
         });
+        setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
     };
 
     const handleEditProf = (prof: Professional) => {
@@ -562,12 +620,45 @@ export const AdminDashboard: React.FC = () => {
                                 type='text'
                                 required
                                 value={profFormData.license}
-                                onChange={(e) =>
-                                    setProfFormData({ ...profFormData, license: e.target.value })
-                                }
-                                placeholder='Ej: M.N. 48.912'
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setProfFormData({ ...profFormData, license: value });
+                                    buscarMatricula(value);
+                                }}
+                                placeholder='Ej: 48912 o M.N. 48.912'
                                 className='w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
                             />
+
+                            {/* Feedback de validación de matrícula */}
+                            {matriculaStatus.checking && (
+                                <p className='mt-1.5 text-[11px] text-neutral-500 animate-pulse'>
+                                    Verificando matrícula en el padrón...
+                                </p>
+                            )}
+
+                            {matriculaStatus.found === true && matriculaStatus.nombreSugerido && (
+                                <p className='mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1'>
+                                    <CheckCircle2 className='w-3 h-3' />
+                                    Matrícula válida: {matriculaStatus.nombreSugerido}
+                                </p>
+                            )}
+
+                            {matriculaStatus.found === false && (
+                                <div className='mt-1.5 p-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800'>
+                                    <p className='text-[11px] text-red-700 dark:text-red-300 font-semibold'>
+                                        Matrícula no encontrada en el padrón. Chequeá el número.
+                                    </p>
+                                    <a
+                                        href='https://www.argentina.gob.ar/salud/buscador-nacional-de-profesionales-de-la-salud'
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        className='text-[11px] text-red-600 dark:text-red-400 underline hover:no-underline mt-1 inline-block'
+                                    >
+                                        Verificar en el Buscador Nacional de Profesionales de la
+                                        Salud →
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     </div>
 
