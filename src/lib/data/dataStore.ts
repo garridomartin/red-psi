@@ -6,22 +6,12 @@ import { MOCK_PROFESSIONALS, MOCK_ARTICLES } from './mockData';
 // ==========================================
 // HELPER PARA ESCRITURAS (JWT Dinámico)
 // ==========================================
+
 function getSupabaseWithAuth() {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('red_epsilon_jwt') : null;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-    if (!token) {
-        console.warn(
-            'No hay JWT en localStorage. Las escrituras fallarán si las RLS están activas.',
-        );
-    }
-
-    return createClient(supabaseUrl, supabaseAnonKey, {
-        global: {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
-    });
+    // Con Supabase Cloud, el cliente `supabase` ya maneja la sesión automáticamente.
+    // Si el usuario está logueado, las requests van con su JWT de Supabase.
+    // Si no, van con la anon key (y las RLS deciden si permite o no).
+    return supabase;
 }
 
 // ==========================================
@@ -89,11 +79,14 @@ export async function addProfessional(data: Omit<Professional, 'id'>) {
 }
 
 export async function updateProfessional(id: string, data: Partial<Professional>) {
-    const authSupabase = getSupabaseWithAuth();
-    const { error } = await authSupabase.from('professionals').update(data).eq('id', id);
-
-    if (error) throw new Error(error.message);
-    window.dispatchEvent(new Event('red_epsilon_data_changed'));
+    const res = await fetch(`/api/professionals/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al actualizar`);
+    return body.professional;
 }
 
 export async function deleteProfessional(id: string) {

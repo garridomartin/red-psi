@@ -1,242 +1,136 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, Image as ImageIcon, Trash2, RefreshCw, CheckCircle2, AlertCircle, Clipboard } from 'lucide-react';
-import { allowedImageMimeTypes, maxImageSizeBytes } from '@/lib/validations';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import React, { useState, useRef, useCallback } from 'react';
+import { UploadCloud, Link as LinkIcon, X, Loader2 } from 'lucide-react';
 
 interface ImageUploaderProps {
-  value: string;
-  onChange: (url: string) => void;
-  className?: string;
+    value: string;
+    onChange: (url: string) => void;
 }
 
-export const ImageUploader: React.FC<ImageUploaderProps> = ({
-  value,
-  onChange,
-  className = '',
-}) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+export const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange }) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Clipboard paste listener (Ctrl+V)
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      if (!e.clipboardData) return;
-      const items = e.clipboardData.items;
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          const blob = items[i].getAsFile();
-          if (blob) {
-            handleFileProcess(blob, 'Captura pegada desde portapapeles');
-            e.preventDefault();
-            break;
-          }
+    const handleUpload = async (file: File) => {
+        if (!file.type.startsWith('image/')) {
+            setError('El archivo debe ser una imagen');
+            return;
         }
-      }
+        setIsUploading(true);
+        setError(null);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+            onChange(data.url);
+            setIsUploading(false);
+        } catch (err: any) {
+            setError('Error al procesar la imagen: ' + (err.message || 'Desconocido'));
+            setIsUploading(false);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, []);
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) handleUpload(file);
+    };
 
-  const handleFileProcess = async (file: File, fallbackName?: string) => {
-    setErrorMsg(null);
+    const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleUpload(file);
+    }, []);
 
-    // Validate type
-    if (!allowedImageMimeTypes.includes(file.type)) {
-      setErrorMsg('Formato no válido. Solo se permiten imágenes JPG, PNG o WebP.');
-      return;
-    }
+    const onPaste = useCallback((e: React.ClipboardEvent<HTMLDivElement>) => {
+        const file = e.clipboardData.files?.[0];
+        if (file) handleUpload(file);
+    }, []);
 
-    // Validate size (5MB max)
-    if (file.size > maxImageSizeBytes) {
-      setErrorMsg('El archivo excede el tamaño máximo permitido de 5 MB.');
-      return;
-    }
+    return (
+        <div className='space-y-2'>
+            <label className='block text-xs font-bold text-neutral-800 dark:text-neutral-200'>
+                Foto de perfil *
+            </label>
 
-    const formattedSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-    setFileDetails({
-      name: file.name || fallbackName || 'imagen.jpg',
-      size: formattedSize,
-    });
-
-    setIsUploading(true);
-
-    try {
-      // If Supabase Storage is configured, upload to bucket
-      if (isSupabaseConfigured) {
-        const fileExt = file.name.split('.').pop() || 'jpg';
-        const fileName = `prof_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `professionals/${fileName}`;
-
-        const { data, error } = await supabase.storage
-          .from('professionals-photos')
-          .upload(filePath, file, { upsert: true });
-
-        if (!error && data) {
-          const { data: publicUrlData } = supabase.storage
-            .from('professionals-photos')
-            .getPublicUrl(filePath);
-
-          onChange(publicUrlData.publicUrl);
-          setIsUploading(false);
-          return;
-        }
-      }
-
-      // Local reader fallback (Base64 URL) for instant preview and offline support
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const resultUrl = e.target?.result as string;
-        onChange(resultUrl);
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch (err: any) {
-      setErrorMsg('Error al procesar la imagen: ' + (err.message || 'Desconocido'));
-      setIsUploading(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileProcess(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileProcess(e.target.files[0]);
-    }
-  };
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange('');
-    setFileDetails(null);
-    setErrorMsg(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  return (
-    <div className={`space-y-2 ${className}`}>
-      <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
-        Foto del profesional *
-      </label>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/png, image/jpeg, image/webp"
-        onChange={handleFileInputChange}
-        className="hidden"
-      />
-
-      {value ? (
-        /* Image Preview Box with Controls */
-        <div className="relative rounded-2xl overflow-hidden border-2 border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 p-3 flex items-center gap-4">
-          <div className="w-20 h-20 rounded-xl overflow-hidden relative shrink-0 border border-neutral-300 dark:border-neutral-600 bg-neutral-900">
-            <img src={value} alt="Preview" className="w-full h-full object-cover" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Imagen cargada correctamente</span>
-            </div>
-            {fileDetails && (
-              <p className="text-[11px] text-neutral-500 truncate mt-0.5">
-                {fileDetails.name} ({fileDetails.size})
-              </p>
-            )}
-            <p className="text-[10px] text-neutral-400 mt-1 truncate">
-              URL: {value.startsWith('data:') ? 'Codificada en Base64' : value}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-xl text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-              title="Cambiar imagen"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="p-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-              title="Eliminar imagen"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* Dropzone / Paste Area */
-        <div
-          ref={containerRef}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => fileInputRef.current?.click()}
-          tabIndex={0}
-          className={`relative border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center cursor-pointer transition-all duration-200 ${
-            isDragging
-              ? 'border-primary-400 bg-primary-50/50 dark:bg-primary-950/20 scale-[1.01]'
-              : 'border-neutral-300 dark:border-neutral-700 hover:border-primary-400 bg-neutral-50/50 dark:bg-neutral-800/40'
-          }`}
-        >
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-primary-400/20 text-primary-600 dark:text-primary-400 flex items-center justify-center mb-3">
-            {isUploading ? (
-              <RefreshCw className="w-6 h-6 animate-spin" />
+            {value ? (
+                // VISTA PREVIA (Si ya hay una imagen)
+                <div className='relative w-full h-48 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 group'>
+                    <img src={value} alt='Vista previa' className='w-full h-full object-cover' />
+                    <button
+                        type='button'
+                        onClick={() => onChange('')}
+                        className='absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity'
+                        title='Eliminar imagen'
+                    >
+                        <X className='w-4 h-4' />
+                    </button>
+                </div>
             ) : (
-              <UploadCloud className="w-6 h-6" />
+                // ZONA DE SUBIDA (Si no hay imagen)
+                <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={onDrop}
+                    onPaste={onPaste}
+                    tabIndex={0} // Para poder hacer foco y pegar
+                    className='relative w-full h-48 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400'
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    {isUploading ? (
+                        <div className='flex flex-col items-center text-primary-500'>
+                            <Loader2 className='w-8 h-8 animate-spin mb-2' />
+                            <span className='text-xs font-semibold'>
+                                Convirtiendo a AVIF y subiendo...
+                            </span>
+                        </div>
+                    ) : (
+                        <>
+                            <UploadCloud className='w-8 h-8 text-neutral-400 mb-2' />
+                            <p className='text-xs font-semibold text-neutral-700 dark:text-neutral-300 text-center px-4'>
+                                Hacé clic para buscar, arrastrá una imagen o pegala con Ctrl+V
+                            </p>
+                            <p className='text-[10px] text-neutral-500 mt-1'>
+                                Formatos: JPG, PNG, WEBP (se convierten a AVIF)
+                            </p>
+                        </>
+                    )}
+                </div>
             )}
-          </div>
 
-          <h4 className="text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-1">
-            {isDragging ? 'Soltá la foto acá' : 'Arrastrá tu imagen o hacé clic para explorar'}
-          </h4>
+            {/* Input oculto para el click */}
+            <input
+                type='file'
+                accept='image/*'
+                className='hidden'
+                ref={fileInputRef}
+                onChange={onFileChange}
+            />
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-200/60 dark:bg-neutral-700/60 text-[11px] font-semibold text-neutral-600 dark:text-neutral-300 my-2">
-            <Clipboard className="w-3.5 h-3.5 text-primary-500" />
-            <span>O presioná Ctrl+V para pegar captura de pantalla</span>
-          </div>
+            {error && <p className='text-xs text-red-500 font-semibold'>{error}</p>}
 
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Admite JPG, PNG o WebP hasta 5 MB.
-          </p>
+            {/* Alternativa: ingresar URL manual (por si suben desde otro lado) */}
+            {!value && !isUploading && (
+                <div className='flex items-center gap-2 mt-2'>
+                    <LinkIcon className='w-3 h-3 text-neutral-400' />
+                    <input
+                        type='url'
+                        placeholder='O pegá una URL externa acá...'
+                        className='flex-1 text-[11px] bg-transparent border-b border-neutral-300 dark:border-neutral-700 focus:outline-none focus:border-primary-400 py-1'
+                        onChange={(e) => {
+                            // Solo actualiza si es una URL válida básica
+                            if (e.target.value.startsWith('http')) onChange(e.target.value);
+                        }}
+                    />
+                </div>
+            )}
         </div>
-      )}
-
-      {errorMsg && (
-        <div className="p-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{errorMsg}</span>
-        </div>
-      )}
-    </div>
-  );
+    );
 };
