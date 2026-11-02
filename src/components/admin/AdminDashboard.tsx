@@ -191,14 +191,14 @@ export const AdminDashboard: React.FC = () => {
                         name: prev.name.trim() === '' ? data.nombre : prev.name,
                     }));
                 } else {
-                    console.error('🔴 [buscarMatricula] Error en fetch:', err);
                     setMatriculaStatus({
                         checking: false,
                         found: false,
                         nombreSugerido: null,
                     });
                 }
-            } catch {
+            } catch (err) {
+                console.error('🔴 [buscarMatricula] Error en fetch:', err);
                 setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
             }
         }, 500); // 500ms debounce
