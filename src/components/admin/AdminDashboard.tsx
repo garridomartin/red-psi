@@ -154,6 +154,7 @@ export const AdminDashboard: React.FC = () => {
 
     const buscarMatricula = (matricula: string) => {
         // Limpiar timeout anterior
+        console.log('🔵 [buscarMatricula] Iniciada con:', matricula);
         if (matriculaDebounceRef.current) {
             clearTimeout(matriculaDebounceRef.current);
         }
@@ -161,6 +162,7 @@ export const AdminDashboard: React.FC = () => {
         const limpia = matricula.replace(/\D/g, '');
 
         if (limpia.length < 3) {
+            console.log('🔵 [buscarMatricula] Muy corta, abortando búsqueda.');
             setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
             return;
         }
@@ -169,10 +171,13 @@ export const AdminDashboard: React.FC = () => {
 
         matriculaDebounceRef.current = setTimeout(async () => {
             try {
+                console.log('🟢 [buscarMatricula] Disparando fetch para:', limpia);
                 const res = await fetch(
                     `/api/matriculas/buscar?matricula=${encodeURIComponent(limpia)}`,
                 );
+                console.log('🟢 [buscarMatricula] Status de respuesta:', res.status);
                 const data = await res.json();
+                console.log('🟢 [buscarMatricula] Datos recibidos:', data);
 
                 if (data.found) {
                     setMatriculaStatus({
@@ -186,6 +191,7 @@ export const AdminDashboard: React.FC = () => {
                         name: prev.name.trim() === '' ? data.nombre : prev.name,
                     }));
                 } else {
+                    console.error('🔴 [buscarMatricula] Error en fetch:', err);
                     setMatriculaStatus({
                         checking: false,
                         found: false,
@@ -622,7 +628,11 @@ export const AdminDashboard: React.FC = () => {
                                 value={profFormData.license}
                                 onChange={(e) => {
                                     const value = e.target.value;
+                                    console.log('🟡 [Input Matrícula] Escribiendo:', value);
                                     setProfFormData({ ...profFormData, license: value });
+                                    console.log(
+                                        '🟡 [Input Matrícula] Llamando a buscarMatricula...',
+                                    );
                                     buscarMatricula(value);
                                 }}
                                 placeholder='Ej: 48912 o M.N. 48.912'
