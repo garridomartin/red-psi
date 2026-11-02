@@ -124,8 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!res.ok) throw new Error(data.error || 'Error de autenticación');
 
             setUser(data.user);
-            setToken(data.token);
-            localStorage.setItem('red_epsilon_jwt', data.token);
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
         } finally {
             setIsLoading(false);

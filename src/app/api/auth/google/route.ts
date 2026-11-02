@@ -8,7 +8,7 @@ const googleClient = new OAuth2Client(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 // Esto saltea RLS y nos permite hacer upsert en public.users
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // 👈 Ahora sí usamos la service role key
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export async function POST(req: NextRequest) {
@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
         const { email, sub: googleSub, name, picture } = payload;
 
         // 2. Buscar o crear usuario en public.users usando el cliente admin
-        // Buscar por google_sub o por email
         let { data: user, error: findError } = await supabaseAdmin
             .from('users')
             .select('id, email, name, role, google_sub, avatar_url')
@@ -69,12 +68,10 @@ export async function POST(req: NextRequest) {
             user = updatedUser;
         }
 
-        // 👇 ACÁ ESTÁ LA SOLUCIÓN: Verificación explícita para TypeScript
+        // 👇 SOLUCIÓN AL ERROR DE TYPESCRIPT
+        // Verificamos explícitamente que user no sea null antes de usarlo.
         if (!user) {
-            return NextResponse.json(
-                { error: 'No se pudo crear o encontrar el usuario' },
-                { status: 500 },
-            );
+            return NextResponse.json({ error: 'No se pudo obtener el usuario' }, { status: 500 });
         }
 
         // 3. Devolver los datos del usuario al frontend (SIN firmar JWT propio)
@@ -84,6 +81,7 @@ export async function POST(req: NextRequest) {
                 email: user.email,
                 name: user.name,
                 role: user.role,
+                avatar_url: user.avatar_url, // 👈 Agregado para que el frontend tenga la foto
             },
         });
     } catch (err: any) {

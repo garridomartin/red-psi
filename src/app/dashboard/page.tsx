@@ -25,26 +25,6 @@ export default function DashboardPage() {
                     Psicologos La Plata con rol de administración.
                 </p>
 
-                {/* Demo button so reviewer can test admin without setup */}
-                <div className='p-5 rounded-2xl bg-neutral-100 dark:bg-neutral-850 border border-neutral-200 dark:border-neutral-700 text-left space-y-3'>
-                    <div className='flex items-center gap-2 text-xs font-bold text-neutral-800 dark:text-neutral-200'>
-                        <ShieldCheck className='w-4 h-4 text-primary-500' />
-                        <span>Acceso de prueba de desarrollo</span>
-                    </div>
-                    <p className='text-xs text-neutral-500'>
-                        Podés iniciar sesión inmediatamente como administrador con un solo clic para
-                        probar la carga de profesionales (drag & drop, portapapeles, filtros) y CRUD
-                        de artículos.
-                    </p>
-                    <button
-                        onClick={() => loginAsAdmin()}
-                        className='w-full py-2.5 px-4 rounded-xl bg-primary-400 hover:bg-primary-300 text-neutral-950 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2'
-                    >
-                        <UserCheck className='w-4 h-4' />
-                        <span>Acceder como Administrador (natalia.garrido17@gmail.com)</span>
-                    </button>
-                </div>
-
                 <div>
                     <Link
                         href='/'
