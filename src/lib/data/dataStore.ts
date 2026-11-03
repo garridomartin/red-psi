@@ -117,20 +117,37 @@ export async function toggleActiveProfessional(id: string, currentValue: boolean
 // /api/articles en el próximo paso, igual que professionals.
 
 export async function addArticle(data: Omit<Article, 'id'>) {
-    const { error } = await supabase.from('articles').insert(data);
-    if (error) throw new Error(error.message);
+    const res = await fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al crear`);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
+    return body.article;
 }
 
 export async function updateArticle(id: string, data: Partial<Article>) {
-    const { error } = await supabase.from('articles').update(data).eq('id', id);
-    if (error) throw new Error(error.message);
-    window.dispatchEvent(new Event('red_epsilon_data_changed'));
+    const res = await fetch(`/api/articles/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al actualizar`);
+    return body.article;
 }
 
 export async function deleteArticle(id: string) {
-    const { error } = await supabase.from('articles').delete().eq('id', id);
-    if (error) throw new Error(error.message);
+    const res = await fetch(`/api/articles/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al eliminar`);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 

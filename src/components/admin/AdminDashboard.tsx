@@ -414,14 +414,18 @@ export const AdminDashboard: React.FC = () => {
         }
     };
 
-    const handleDeleteArticle = (id: string, title: string) => {
-        if (confirm(`¿Eliminar artículo "${title}"?`)) {
-            deleteArticle(id);
-            loadAllData();
+    const handleDeleteArticle = async (id: string, title: string) => {
+        if (!confirm(`¿Eliminar artículo "${title}"?`)) return;
+    
+        try {
+            await deleteArticle(id);
+            await loadAllData();
             showNotification('success', 'Artículo eliminado.');
+        } catch (err: any) {
+            console.error('Error eliminando artículo:', err);
+            showNotification('error', err.message || 'No se pudo eliminar el artículo.');
         }
     };
-
     return (
         <div className='space-y-8'>
             {/* Top Banner / Feedback alert */}
