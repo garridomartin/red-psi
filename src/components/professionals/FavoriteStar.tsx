@@ -31,10 +31,6 @@ export const FavoriteStar: React.FC<FavoriteStarProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        console.log('🔵 [FavoriteStar] Click en estrella. ID:', professionalId);
-        console.log('🔵 [FavoriteStar] Usuario actual:', user);
-        console.log('🔵 [FavoriteStar] ¿Ya es favorito?', favorited);
-
         if (!user) {
             console.warn('🔴 [FavoriteStar] No hay usuario logueado.');
             if (onRequireLogin) {
@@ -47,7 +43,6 @@ export const FavoriteStar: React.FC<FavoriteStarProps> = ({
             return;
         }
 
-        console.log('🟢 [FavoriteStar] Llamando a toggleFavorite...');
         toggleFavorite(professionalId);
     };
 

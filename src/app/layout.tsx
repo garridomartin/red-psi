@@ -6,7 +6,7 @@ import { Footer } from '@/components/common/Footer';
 import { GeoPrompt } from '@/components/common/GeoPrompt';
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://redepsilon.com.ar'),
+    metadataBase: new URL('https://psicologolaplata.ar'),
     title: {
         default: 'Psicologos La Plata | Red y Agencia de Psicólogos en Argentina',
         template: '%s | Psicologos La Plata',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
             'Descubrí, compará y contactá psicólogos matriculados. Terapia presencial y online en Buenos Aires y todo el país.',
         images: [
             {
-                url: '/logo-phi.svg',
+                url: '/psi-image.jpeg',
                 width: 800,
                 height: 800,
                 alt: 'Logo Red Épsilon Psicología',

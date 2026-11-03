@@ -13,7 +13,7 @@ import { GoogleOneTap } from '@/components/GoogleOneTap';
 export default function FavoritesPage() {
     const { user, favorites, loginWithGoogle } = useAuth();
     const [favoriteProfessionals, setFavoriteProfessionals] = useState<Professional[]>([]);
-    console.log('🚀 ~ file: page.tsx:16 ~ favoriteProfessionals:', favoriteProfessionals);
+   
     const [loginError, setLoginError] = useState<string | null>(null);
 
     useEffect(() => {
