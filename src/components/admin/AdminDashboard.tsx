@@ -311,6 +311,11 @@ export const AdminDashboard: React.FC = () => {
 
         const validated = professionalSchema.safeParse(profFormData);
         if (!validated.success) {
+            console.error('Issues de validación:', JSON.stringify(validated.error.issues, null, 2));
+            // ...
+        }
+
+        if (!validated.success) {
             console.warn('🔴 [AdminDashboard] Validación fallida:', validated.error.issues);
             const firstError =
                 validated.error.issues[0]?.message || 'Verificá los datos del formulario';
@@ -350,15 +355,13 @@ export const AdminDashboard: React.FC = () => {
         }
     };
 
-
-
-    const handleToggleFeatured = (id: string) => {
-        toggleFeaturedProfessional(id);
+    const handleToggleFeatured = (p: Professional) => {
+        toggleFeaturedProfessional(p.id, p.is_featured);
         loadAllData();
     };
 
-    const handleToggleActive = (id: string) => {
-        toggleActiveProfessional(id);
+    const handleToggleActive = (p: Professional) => {
+        toggleActiveProfessional(p.id, p.is_active);
         loadAllData();
     };
 
@@ -549,7 +552,7 @@ export const AdminDashboard: React.FC = () => {
                                             </td>
                                             <td className='p-4 text-center'>
                                                 <button
-                                                    onClick={() => handleToggleFeatured(p.id)}
+                                                    onClick={() => handleToggleFeatured(p)}
                                                     className={`p-1.5 rounded-lg transition-colors ${
                                                         p.is_featured
                                                             ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
@@ -564,7 +567,7 @@ export const AdminDashboard: React.FC = () => {
                                             </td>
                                             <td className='p-4 text-center'>
                                                 <button
-                                                    onClick={() => handleToggleActive(p.id)}
+                                                    onClick={() => handleToggleActive(p)}
                                                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
                                                         p.is_active
                                                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'

@@ -1,21 +1,10 @@
-//dataStore.ts
+//src\lib\data\dataStore.ts
 import { supabase } from '@/lib/supabase';
 import { Professional, Article } from '@/types';
 import { MOCK_PROFESSIONALS, MOCK_ARTICLES } from './mockData';
 
 // ==========================================
-// HELPER PARA ESCRITURAS (JWT Dinámico)
-// ==========================================
-
-function getSupabaseWithAuth() {
-    // Con Supabase Cloud, el cliente `supabase` ya maneja la sesión automáticamente.
-    // Si el usuario está logueado, las requests van con su JWT de Supabase.
-    // Si no, van con la anon key (y las RLS deciden si permite o no).
-    return supabase;
-}
-
-// ==========================================
-// LECTURAS (Ya funcionan, no tocar)
+// LECTURAS (públicas, van directo a Supabase)
 // ==========================================
 export async function getProfessionals(): Promise<Professional[]> {
     const { data, error } = await supabase.from('professionals').select('*');
@@ -58,26 +47,27 @@ export async function getArticleBySlug(slug: string): Promise<Article | undefine
 }
 
 // ==========================================
-// ESCRITURAS (Ahora van a Postgres)
+// PROFESIONALES (escrituras vía Route Handlers)
 // ==========================================
 
 export async function addProfessional(data: Omit<Professional, 'id'>) {
-    const authSupabase = getSupabaseWithAuth();
-    const newId = `prof-${Date.now()}`;
-
-    const { error } = await authSupabase.from('professionals').insert({
-        ...data,
-        id: newId,
+    const res = await fetch('/api/professionals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
     });
-
-    if (error) throw new Error(error.message);
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al crear`);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
+    return body.professional;
 }
 
 export async function updateProfessional(id: string, data: Partial<Professional>) {
     const res = await fetch(`/api/professionals/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(data),
     });
     const body = await res.json().catch(() => ({}));
@@ -86,79 +76,60 @@ export async function updateProfessional(id: string, data: Partial<Professional>
 }
 
 export async function deleteProfessional(id: string) {
-    const authSupabase = getSupabaseWithAuth();
-    const { error } = await authSupabase.from('professionals').delete().eq('id', id);
-
-    if (error) throw new Error(error.message);
+    const res = await fetch(`/api/professionals/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al eliminar`);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
-export async function toggleFeaturedProfessional(id: string) {
-    const authSupabase = getSupabaseWithAuth();
-    const { data: prof, error: readError } = await authSupabase
-        .from('professionals')
-        .select('is_featured')
-        .eq('id', id)
-        .single();
-
-    if (readError) throw new Error(readError.message);
-
-    const { error } = await authSupabase
-        .from('professionals')
-        .update({ is_featured: !prof.is_featured })
-        .eq('id', id);
-
-    if (error) throw new Error(error.message);
+export async function toggleFeaturedProfessional(id: string, currentValue: boolean) {
+    const res = await fetch(`/api/professionals/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ is_featured: !currentValue }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al actualizar`);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
-export async function toggleActiveProfessional(id: string) {
-    const authSupabase = getSupabaseWithAuth();
-    const { data: prof, error: readError } = await authSupabase
-        .from('professionals')
-        .select('is_active')
-        .eq('id', id)
-        .single();
-
-    if (readError) throw new Error(readError.message);
-
-    const { error } = await authSupabase
-        .from('professionals')
-        .update({ is_active: !prof.is_active })
-        .eq('id', id);
-
-    if (error) throw new Error(error.message);
+export async function toggleActiveProfessional(id: string, currentValue: boolean) {
+    const res = await fetch(`/api/professionals/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ is_active: !currentValue }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Error ${res.status} al actualizar`);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
-// --- ARTÍCULOS ---
+// ==========================================
+// ARTÍCULOS (escrituras — por ahora siguen con supabase anónimo)
+// ==========================================
+// NOTA: articles todavía no tiene Route Handlers propios. Estas tres funciones
+// van a fallar si las RLS de `articles` exigen autenticación. Se migran a
+// /api/articles en el próximo paso, igual que professionals.
 
 export async function addArticle(data: Omit<Article, 'id'>) {
-    const authSupabase = getSupabaseWithAuth();
-    const newId = `art-${Date.now()}`;
-
-    const { error } = await authSupabase.from('articles').insert({
-        ...data,
-        id: newId,
-    });
-
+    const { error } = await supabase.from('articles').insert(data);
     if (error) throw new Error(error.message);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
-// 👇 NUEVA FUNCIÓN PARA EDITAR ARTÍCULOS
 export async function updateArticle(id: string, data: Partial<Article>) {
-    const authSupabase = getSupabaseWithAuth();
-    const { error } = await authSupabase.from('articles').update(data).eq('id', id);
-
+    const { error } = await supabase.from('articles').update(data).eq('id', id);
     if (error) throw new Error(error.message);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
 export async function deleteArticle(id: string) {
-    const authSupabase = getSupabaseWithAuth();
-    const { error } = await authSupabase.from('articles').delete().eq('id', id);
-
+    const { error } = await supabase.from('articles').delete().eq('id', id);
     if (error) throw new Error(error.message);
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
