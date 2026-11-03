@@ -63,6 +63,23 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang='es' suppressHydrationWarning>
+            {/* Script anti-flash: se ejecuta ANTES del primer paint */}
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                try {
+                                    var t = localStorage.getItem('red_epsilon_theme_v1');
+                                    if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                                        document.documentElement.classList.add('dark');
+                                    }
+                                } catch (e) {}
+                            })();
+                        `,
+                    }}
+                />
+            </head>
             <body className='min-h-screen flex flex-col transition-colors selection:bg-primary-400 selection:text-neutral-950'>
                 <AuthProvider>
                     <div className='flex flex-col min-h-screen'>

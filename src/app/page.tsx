@@ -5,16 +5,7 @@ import Link from 'next/link';
 import { getProfessionals } from '@/lib/data/dataStore';
 import { Professional } from '@/types';
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard';
-import {
-    Compass,
-    Sparkles,
-    Instagram,
-    ArrowRight,
-    ShieldCheck,
-    Heart,
-    ChevronRight,
-    MapPin,
-} from 'lucide-react';
+import { Compass, Sparkles, Instagram, ArrowRight, ChevronRight, MapPin } from 'lucide-react';
 
 export default function HomePage() {
     const [featuredProfessionals, setFeaturedProfessionals] = useState<Professional[]>([]);
@@ -74,7 +65,7 @@ export default function HomePage() {
                                 className='w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-neutral-850 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100 font-bold text-sm shadow-sm transition-all'
                             >
                                 <Instagram className='w-4 h-4 text-pink-500' />
-                                <span>Nuestro Instagram</span>
+                                <span className='dark:text-black'>Nuestro Instagram</span>
                             </a>
                         </div>
 
@@ -250,19 +241,19 @@ export default function HomePage() {
                                 </div>
                                 <div className='aspect-square rounded-xl bg-neutral-800/80 overflow-hidden relative'>
                                     <img
-                                        src='https://images.unsplash.com/photo-1594824813583-366a7ec65137?auto=format&fit=crop&w=400&q=80'
+                                        src={featuredProfessionals[0]?.photo_url}
                                         alt='Tarjeta Instagram'
                                         className='w-full h-full object-cover'
                                     />
                                     <div className='absolute inset-0 bg-neutral-950/40 p-2.5 flex flex-col justify-end'>
                                         <p className='text-[11px] font-bold leading-tight'>
-                                            Nueva profesional: Lic. Sofía Valenzuela
+                                            {featuredProfessionals[0]?.name}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className='rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/15 space-y-3 mt-6'>
+                            <div className='rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/15 space-y-3 '>
                                 <div className='flex items-center gap-2'>
                                     <div className='w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-pink-500 p-0.5'>
                                         <div className='w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-[10px] font-bold'>
@@ -273,13 +264,13 @@ export default function HomePage() {
                                 </div>
                                 <div className='aspect-square rounded-xl bg-neutral-800/80 overflow-hidden relative'>
                                     <img
-                                        src='https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80'
+                                        src={featuredProfessionals[1]?.photo_url}
                                         alt='Tarjeta Instagram'
                                         className='w-full h-full object-cover'
                                     />
                                     <div className='absolute inset-0 bg-neutral-950/40 p-2.5 flex flex-col justify-end'>
                                         <p className='text-[11px] font-bold leading-tight'>
-                                            Psicoanálisis contemporáneo con Lic. Martín E.
+                                            {featuredProfessionals[1]?.name}
                                         </p>
                                     </div>
                                 </div>

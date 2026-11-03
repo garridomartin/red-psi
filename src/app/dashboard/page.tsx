@@ -7,7 +7,7 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ShieldAlert } from 'lucide-react';
 
 export default function DashboardPage() {
-    const { user, isAdmin, loginAsAdmin } = useAuth();
+    const { user, isAdmin } = useAuth();
 
     if (!user || !isAdmin) {
         return (

@@ -1,5 +1,5 @@
 //dataStore.ts
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Professional, Article } from '@/types';
 import { MOCK_PROFESSIONALS, MOCK_ARTICLES } from './mockData';
 
@@ -18,7 +18,6 @@ function getSupabaseWithAuth() {
 // LECTURAS (Ya funcionan, no tocar)
 // ==========================================
 export async function getProfessionals(): Promise<Professional[]> {
-    if (!isSupabaseConfigured) return MOCK_PROFESSIONALS;
     const { data, error } = await supabase.from('professionals').select('*');
     if (error) {
         console.error('Error fetching professionals:', error);
@@ -28,7 +27,6 @@ export async function getProfessionals(): Promise<Professional[]> {
 }
 
 export async function getProfessionalBySlug(slug: string): Promise<Professional | undefined> {
-    if (!isSupabaseConfigured) return MOCK_PROFESSIONALS.find((p) => p.slug === slug);
     const { data, error } = await supabase
         .from('professionals')
         .select('*')
@@ -42,7 +40,6 @@ export async function getProfessionalBySlug(slug: string): Promise<Professional 
 }
 
 export async function getArticles(): Promise<Article[]> {
-    if (!isSupabaseConfigured) return MOCK_ARTICLES;
     const { data, error } = await supabase.from('articles').select('*');
     if (error) {
         console.error('Error fetching articles:', error);
@@ -52,7 +49,6 @@ export async function getArticles(): Promise<Article[]> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
-    if (!isSupabaseConfigured) return MOCK_ARTICLES.find((a) => a.slug === slug);
     const { data, error } = await supabase.from('articles').select('*').eq('slug', slug).single();
     if (error) {
         console.error('Error fetching article:', error);

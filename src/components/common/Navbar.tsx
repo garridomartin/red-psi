@@ -23,15 +23,8 @@ import {
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-    const {
-        user,
-        isAdmin,
-        favorites,
-        isDarkMode,
-        loginWithGoogle,
-        logout, // <-- loginAsAdmin fuera
-        toggleDarkMode,
-    } = useAuth();
+    const { user, isAdmin, favorites, isDarkMode, loginWithGoogle, logout, toggleDarkMode } =
+        useAuth();
     const pathname = usePathname();
 
     const [isVisible, setIsVisible] = useState(true);

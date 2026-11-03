@@ -31,8 +31,8 @@ export interface Professional {
     id: string;
     name: string;
     slug: string;
-    title?: string; // e.g. "Licenciada en Psicología (UBA)"
-    license?: string; // e.g. "M.N. 48.912"
+    title?: string;
+    license?: string;
     bio: string;
     photo_url: string;
     gender: Gender;

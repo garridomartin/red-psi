@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Professional, Article, Specialty, Insurance, Gender, Modality } from '@/types';
+import { Professional, Article, Gender, Modality } from '@/types';
 import {
     getProfessionals,
     addProfessional,
@@ -349,6 +349,8 @@ export const AdminDashboard: React.FC = () => {
             showNotification('success', `Profesional ${name} eliminado.`);
         }
     };
+
+
 
     const handleToggleFeatured = (id: string) => {
         toggleFeaturedProfessional(id);
