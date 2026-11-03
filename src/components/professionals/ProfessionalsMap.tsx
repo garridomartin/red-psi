@@ -184,7 +184,7 @@ export const ProfessionalsMap: React.FC<ProfessionalsMapProps> = ({
                 />
                 <div style="overflow: hidden;">
                   <strong style="display: block; font-size: 12px; color: #111; line-height: 1.2;">${prof.name}</strong>
-                  <span style="font-size: 10px; color: #666;">${prof.license} • ${prof.age} años</span>
+                  <span style="font-size: 10px; color: #666;">M.N. ${prof.license} • ${prof.age} años</span>
                   <div style="margin-top: 2px;">
                     <span style="font-size: 9px; font-weight: bold; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">
                       ${prof.modality}

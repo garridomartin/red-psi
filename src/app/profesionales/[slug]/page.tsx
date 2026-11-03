@@ -149,7 +149,7 @@ export default function ProfessionalDetailPage() {
                             <div className='flex flex-wrap items-center gap-2 mb-2'>
                                 <span className='px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1'>
                                     <ShieldCheck className='w-3.5 h-3.5' />
-                                    <span>Matrícula Verificada: {professional.license}</span>
+                                    <span>Matrícula Verificada: M.N. {professional.license}</span>
                                 </span>
                                 <span className='px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'>
                                     {professional.age} años

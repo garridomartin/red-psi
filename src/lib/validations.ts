@@ -16,7 +16,7 @@ export type ContactFormData = z.infer<typeof contactFormSchema>;
 export const professionalSchema = z.object({
     name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
     title: z.string().min(3, 'El título profesional es requerido'),
-    license: z.string().min(3, 'La matrícula es requerida (ej: M.N. 12.345)'),
+    license: z.string().min(3, 'La matrícula es requerida (ej: 12345)'),
     bio: z.string().min(30, 'La descripción o bio debe tener al menos 30 caracteres'),
     photo_url: z.string().optional(),
     gender: z.enum(['femenino', 'masculino', 'no-binario', 'otro']),
