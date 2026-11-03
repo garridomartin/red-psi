@@ -725,10 +725,20 @@ export const AdminDashboard: React.FC = () => {
                                         href='https://www.argentina.gob.ar/salud/buscador-nacional-de-profesionales-de-la-salud'
                                         target='_blank'
                                         rel='noopener noreferrer'
+                                        onClick={() => {
+                                            // Copia la matrícula al portapapeles (sin el MP- ni ceros extra)
+                                            const matriculaLimpia = profFormData.license.replace(
+                                                /[^0-9]/g,
+                                                '',
+                                            );
+                                            if (matriculaLimpia) {
+                                                navigator.clipboard.writeText(matriculaLimpia);
+                                            }
+                                        }}
                                         className='text-[11px] text-red-600 dark:text-red-400 underline hover:no-underline mt-1 inline-block'
                                     >
-                                        Verificar en el Buscador Nacional de Profesionales de la
-                                        Salud →
+                                        Verificar en el Buscador Nacional (selecciona Matrícula y
+                                        haz CTRL+V) →
                                     </a>
                                 </div>
                             )}
