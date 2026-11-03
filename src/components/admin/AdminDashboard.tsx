@@ -138,10 +138,20 @@ export const AdminDashboard: React.FC = () => {
     };
 
     useEffect(() => {
+        // Limpiar formularios AL MONTAR (garantiza que arranquen vacíos)
+        resetProfForm();
+        resetArticleForm();
+
         loadAllData();
         const handleSync = () => loadAllData();
         window.addEventListener('red_epsilon_data_changed', handleSync);
-        return () => window.removeEventListener('red_epsilon_data_changed', handleSync);
+        return () => {
+            window.removeEventListener('red_epsilon_data_changed', handleSync);
+            if (matriculaDebounceRef.current) {
+                clearTimeout(matriculaDebounceRef.current);
+                matriculaDebounceRef.current = null;
+            }
+        };
     }, []);
 
     const showNotification = (type: 'success' | 'error', text: string) => {
@@ -228,9 +238,38 @@ export const AdminDashboard: React.FC = () => {
             is_featured: false,
         });
         setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
+
+        // Cancelar debounce pendiente
+        if (matriculaDebounceRef.current) {
+            clearTimeout(matriculaDebounceRef.current);
+            matriculaDebounceRef.current = null;
+        }
+    };
+
+    const resetArticleForm = () => {
+        setEditingArticleId(null);
+        setArticleFormData({
+            title: '',
+            slug: '',
+            cover_url:
+                'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
+            excerpt: '',
+            content: '',
+            author: 'Equipo Editorial Psicologos La Plata',
+            author_role: 'Psicología & Divulgación',
+            reading_time_minutes: 5,
+            tags: ['Salud Mental', 'Terapia'],
+            is_published: true,
+        });
     };
 
     const handleEditProf = (prof: Professional) => {
+        // Limpiar estado de validación de matrícula previo
+        setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
+        if (matriculaDebounceRef.current) {
+            clearTimeout(matriculaDebounceRef.current);
+            matriculaDebounceRef.current = null;
+        }
         setEditingProfId(prof.id);
         setProfFormData({
             name: prof.name,
@@ -608,20 +647,60 @@ export const AdminDashboard: React.FC = () => {
                             <label className='block text-xs font-bold text-neutral-800 dark:text-neutral-200 mb-1'>
                                 Matrícula *
                             </label>
-                            <input
-                                type='text'
-                                required
-                                value={profFormData.license}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-
-                                    setProfFormData({ ...profFormData, license: value });
-
-                                    buscarMatricula(value);
-                                }}
-                                placeholder='Ej: 48912'
-                                className='w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
-                            />
+                            <div className='relative'>
+                                <input
+                                    type='text'
+                                    required
+                                    value={profFormData.license}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setProfFormData({ ...profFormData, license: value });
+                                        buscarMatricula(value);
+                                    }}
+                                    placeholder='Ej: 48912'
+                                    className='w-full px-3.5 py-2.5 pr-10 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
+                                />
+                                {profFormData.license && (
+                                    <button
+                                        type='button'
+                                        onClick={() => {
+                                            // Cancelar debounce pendiente
+                                            if (matriculaDebounceRef.current) {
+                                                clearTimeout(matriculaDebounceRef.current);
+                                                matriculaDebounceRef.current = null;
+                                            }
+                                            // Limpiar matrícula y nombre
+                                            setProfFormData({
+                                                ...profFormData,
+                                                license: '',
+                                                name: '',
+                                            });
+                                            // Limpiar estado de validación
+                                            setMatriculaStatus({
+                                                checking: false,
+                                                found: null,
+                                                nombreSugerido: null,
+                                            });
+                                        }}
+                                        className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors'
+                                        title='Limpiar matrícula y nombre'
+                                    >
+                                        <svg
+                                            className='w-3.5 h-3.5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2.5}
+                                                d='M6 18L18 6M6 6l12 12'
+                                            />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Feedback de validación de matrícula */}
                             {matriculaStatus.checking && (

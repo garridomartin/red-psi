@@ -11,19 +11,19 @@ export async function GET(request: NextRequest) {
         return Response.json({ error: 'Falta el parámetro matricula' }, { status: 400 });
     }
 
-    // Normalizar: quitar puntos, espacios, guiones; dejar solo dígitos
-    const matriculaNormalizada = matricula.replace(/\D/g, '');
-    const matriculaQuery = Number(matriculaNormalizada); // Convierte "053794" a 53794 (número)
+    // Normalizar: quitar todo lo que no sea dígito y asegurar 6 dígitos con ceros a la izquierda ("3800" -> "003800")
+    const digitos = matricula.replace(/\D/g, '');
+    const matriculaQuery = digitos.padStart(6, '0'); // Mantiene el formato exacto de texto de la DB
+
     const supabaseAdmin = getSupabaseAdmin();
 
     const { data, error } = await supabaseAdmin
         .from('matriculas')
         .select('matricula, nombre')
-        .eq('matricula', matriculaQuery) // Buscamos como número
+        .eq('matricula', matriculaQuery) // Buscamos como string formateado
         .single();
 
     if (error && error.code !== 'PGRST116') {
-        // PGRST116 = no rows returned (lo tratamos como "no encontrada")
         console.error('[matriculas/buscar] Error:', error.message);
         return Response.json({ error: 'Error interno' }, { status: 500 });
     }

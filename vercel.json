@@ -1,8 +1,12 @@
 {
     "crons": [
-      {
-        "path": "/api/cron/actualizar-padron",
-        "schedule": "0 3 1 * *"
-      }
+        {
+            "path": "/api/cron/actualizar-padron",
+            "schedule": "0 3 1 * *"
+        },
+        {
+            "path": "/api/cron/limpiar-imagenes-huerfanas",
+            "schedule": "0 4 * * 0"
+        }
     ]
-  }
+}
