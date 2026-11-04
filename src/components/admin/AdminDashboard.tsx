@@ -80,6 +80,10 @@ export const AdminDashboard: React.FC = () => {
         formData: any;
         slug: string;
     }>(null);
+    const [geocodeDebug, setGeocodeDebug] = useState<any>(null);
+    const [geocodeLoading, setGeocodeLoading] = useState(false);
+
+    // Geocode: debug (botón "Probar")
 
     // Form State for Professional
     const [editingProfId, setEditingProfId] = useState<string | null>(null);
@@ -1249,68 +1253,6 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    {/* Modal de selección de dirección (geocode) */}
-                    {showGeocodeModal && (
-                        <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm'>
-                            <div className='bg-white dark:bg-neutral-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-neutral-200 dark:border-neutral-800 relative max-h-[90vh] overflow-y-auto'>
-                                <div className='flex items-start justify-between mb-4'>
-                                    <div>
-                                        <h3 className='text-lg font-bold font-display text-neutral-900 dark:text-neutral-50'>
-                                            Elegí la dirección correcta
-                                        </h3>
-                                        <p className='text-xs text-neutral-500 mt-1'>
-                                            Georef encontró varias coincidencias para{' '}
-                                            <strong>{profFormData.address}</strong>. Seleccioná la
-                                            que corresponda.
-                                        </p>
-                                    </div>
-                                    <button
-                                        type='button'
-                                        onClick={handleCancelGeocodeModal}
-                                        className='p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    {geocodeCandidates.map((c, idx) => (
-                                        <button
-                                            key={idx}
-                                            type='button'
-                                            onClick={() => handleSelectCandidate(c)}
-                                            className='w-full text-left p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-950/20 transition-colors'
-                                        >
-                                            <p className='text-sm font-bold text-neutral-900 dark:text-neutral-100'>
-                                                {c.label}
-                                            </p>
-                                            <p className='text-[11px] text-neutral-500 mt-0.5'>
-                                                📍{' '}
-                                                {c.localidad ||
-                                                    c.localidadCensal ||
-                                                    'Sin localidad'}{' '}
-                                                • {c.departamento || 'Sin partido'} •{' '}
-                                                {c.provincia || ''}
-                                            </p>
-                                            <p className='text-[10px] text-neutral-400 font-mono mt-1'>
-                                                {c.lat.toFixed(5)}, {c.lng.toFixed(5)}
-                                            </p>
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <div className='mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex justify-end gap-2'>
-                                    <button
-                                        type='button'
-                                        onClick={handleCancelGeocodeModal}
-                                        className='py-2 px-4 text-xs font-bold rounded-xl text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Contact & Instagram */}
                     <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
@@ -1649,6 +1591,65 @@ export const AdminDashboard: React.FC = () => {
                                     </span>
                                 ))}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de selección de dirección (geocode) — FUERA del form y del space-y-8 */}
+            {showGeocodeModal && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm'>
+                    <div className='bg-white dark:bg-neutral-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-neutral-200 dark:border-neutral-800 relative max-h-[90vh] overflow-y-auto'>
+                        <div className='flex items-start justify-between mb-4'>
+                            <div>
+                                <h3 className='text-lg font-bold font-display text-neutral-900 dark:text-neutral-50'>
+                                    Elegí la dirección correcta
+                                </h3>
+                                <p className='text-xs text-neutral-500 mt-1'>
+                                    Georef encontró varias coincidencias para{' '}
+                                    <strong>{profFormData.address}</strong>. Seleccioná la que
+                                    corresponda.
+                                </p>
+                            </div>
+                            <button
+                                type='button'
+                                onClick={handleCancelGeocodeModal}
+                                className='p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className='space-y-2'>
+                            {geocodeCandidates.map((c, idx) => (
+                                <button
+                                    key={idx}
+                                    type='button'
+                                    onClick={() => handleSelectCandidate(c)}
+                                    className='w-full text-left p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-950/20 transition-colors'
+                                >
+                                    <p className='text-sm font-bold text-neutral-900 dark:text-neutral-100'>
+                                        {c.label}
+                                    </p>
+                                    <p className='text-[11px] text-neutral-500 mt-0.5'>
+                                        📍 {c.localidad || c.localidadCensal || 'Sin localidad'} •{' '}
+                                        {c.departamento || 'Sin partido'} • {c.provincia || ''}
+                                    </p>
+                                    <p className='text-[10px] text-neutral-400 font-mono mt-1'>
+                                        {c.lat.toFixed(5)}, {c.lng.toFixed(5)}
+                                    </p>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className='mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex justify-end gap-2'>
+                            <button
+                                type='button'
+                                onClick={handleCancelGeocodeModal}
+                                className='py-2 px-4 text-xs font-bold rounded-xl text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                            >
+                                Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>
