@@ -6,7 +6,7 @@ import { Footer } from '@/components/common/Footer';
 import { GeoPrompt } from '@/components/common/GeoPrompt';
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://psicologolaplata.ar'),
+    metadataBase: new URL('https://www.redpsicologos.com.ar'),
     title: {
         default: 'Psicologos La Plata | Red y Agencia de Psicólogos en Argentina',
         template: '%s | Psicologos La Plata',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         locale: 'es_AR',
-        url: 'https://psicologolaplata.ar',
+        url: 'https://www.redpsicologos.com.ar',
         siteName: 'Psicologos La Plata',
         title: 'Psicologos La Plata | Directorio y Agencia de Psicólogos',
         description:

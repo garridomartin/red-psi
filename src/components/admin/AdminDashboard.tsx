@@ -63,6 +63,23 @@ export const AdminDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
     const [appliedFilter, setAppliedFilter] = useState<string | null>(null);
+    const [geocodeCandidates, setGeocodeCandidates] = useState<
+        Array<{
+            lat: number;
+            lng: number;
+            label: string;
+            localidad: string | null;
+            localidadCensal: string | null;
+            departamento: string | null;
+            provincia: string | null;
+        }>
+    >([]);
+    const [showGeocodeModal, setShowGeocodeModal] = useState(false);
+    const [geocodePendingAction, setGeocodePendingAction] = useState<null | {
+        type: 'save';
+        formData: any;
+        slug: string;
+    }>(null);
 
     // Form State for Professional
     const [editingProfId, setEditingProfId] = useState<string | null>(null);
@@ -217,6 +234,28 @@ export const AdminDashboard: React.FC = () => {
         }, 500); // 500ms debounce
     };
 
+    const probarGeocode = async () => {
+        if (!profFormData.address || profFormData.address.trim().length < 3) {
+            setGeocodeDebug({ error: 'Escribí una dirección primero' });
+            return;
+        }
+        setGeocodeLoading(true);
+        setGeocodeDebug(null);
+        try {
+            const res = await fetch('/api/geocode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: profFormData.address }),
+            });
+            const data = await res.json();
+            setGeocodeDebug({ status: res.status, ...data });
+        } catch (err: any) {
+            setGeocodeDebug({ error: err.message });
+        } finally {
+            setGeocodeLoading(false);
+        }
+    };
+
     const resetProfForm = () => {
         setEditingProfId(null);
         setProfFormData({
@@ -307,7 +346,7 @@ export const AdminDashboard: React.FC = () => {
     const handleSaveProf = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Generate slug
+        // 1. Generar slug
         const generatedSlug = profFormData.name
             .toLowerCase()
             .normalize('NFD')
@@ -315,35 +354,73 @@ export const AdminDashboard: React.FC = () => {
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)+/g, '');
 
+        // 2. Validar antes de geocodificar (para no geocodificar si el form está mal)
         const validated = professionalSchema.safeParse(profFormData);
         if (!validated.success) {
-            console.error('Issues de validación:', JSON.stringify(validated.error.issues, null, 2));
-            // ...
-        }
-
-        if (!validated.success) {
-            console.warn('🔴 [AdminDashboard] Validación fallida:', validated.error.issues);
             const firstError =
                 validated.error.issues[0]?.message || 'Verificá los datos del formulario';
             showNotification('error', firstError);
             return;
         }
 
+        // 3. Geocodificar la dirección (si tiene sentido)
+        let candidates: typeof geocodeCandidates = [];
+        if (profFormData.address && profFormData.address.trim().length >= 5) {
+            try {
+                const geoRes = await fetch('/api/geocode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: profFormData.address }),
+                });
+                if (geoRes.ok) {
+                    const geoData = await geoRes.json();
+                    candidates = geoData.candidates ?? [];
+                }
+            } catch (err) {
+                console.error('Error geocodificando, se usan coordenadas actuales:', err);
+            }
+        }
+
+        // 4. Preparar los datos finales (con las coords actuales por ahora)
+        const buildFinalData = (lat: number, lng: number) => ({
+            ...profFormData,
+            lat,
+            lng,
+            slug: generatedSlug,
+        });
+
+        // 5. Si no hay candidatos, guardar con las coords actuales
+        if (candidates.length === 0) {
+            await persistProf(buildFinalData(profFormData.lat, profFormData.lng));
+            return;
+        }
+
+        // 6. Si hay 1 solo candidato, usarlo directo
+        if (candidates.length === 1) {
+            await persistProf(buildFinalData(candidates[0].lat, candidates[0].lng));
+            return;
+        }
+
+        // 7. Si hay varios, abrir el modal y guardar la acción pendiente
+        setGeocodeCandidates(candidates);
+        setGeocodePendingAction({
+            type: 'save',
+            formData: profFormData,
+            slug: generatedSlug,
+        });
+        setShowGeocodeModal(true);
+    };
+
+    // Función auxiliar que hace el guardado real
+    const persistProf = async (finalData: any) => {
         try {
             if (editingProfId) {
-                await updateProfessional(editingProfId, {
-                    ...profFormData,
-                    slug: generatedSlug,
-                });
-                showNotification('success', `Profesional "${profFormData.name}" actualizado.`);
+                await updateProfessional(editingProfId, finalData);
+                showNotification('success', `Profesional "${finalData.name}" actualizado.`);
             } else {
-                await addProfessional({
-                    ...profFormData,
-                    slug: generatedSlug,
-                });
-                showNotification('success', `Nuevo profesional "${profFormData.name}" registrado.`);
+                await addProfessional(finalData);
+                showNotification('success', `Nuevo profesional "${finalData.name}" registrado.`);
             }
-
             resetProfForm();
             await loadAllData();
             setActiveTab('list');
@@ -353,6 +430,37 @@ export const AdminDashboard: React.FC = () => {
         }
     };
 
+    // Handler cuando el admin elige un candidato en el modal
+    const handleSelectCandidate = async (candidate: (typeof geocodeCandidates)[0]) => {
+        if (!geocodePendingAction || geocodePendingAction.type !== 'save') {
+            setShowGeocodeModal(false);
+            return;
+        }
+        setShowGeocodeModal(false);
+        const finalData = {
+            ...geocodePendingAction.formData,
+            lat: candidate.lat,
+            lng: candidate.lng,
+            slug: geocodePendingAction.slug,
+        };
+        setGeocodePendingAction(null);
+        setGeocodeCandidates([]);
+        await persistProf(finalData);
+    };
+
+    // Handler si el admin cancela (guarda con las coords actuales)
+    const handleCancelGeocodeModal = async () => {
+        if (!geocodePendingAction) {
+            setShowGeocodeModal(false);
+            return;
+        }
+        // Opción: guardar con las coordenadas actuales, o abortar.
+        // Acá elegimos abortar para que el admin pueda corregir la dirección.
+        setShowGeocodeModal(false);
+        setGeocodePendingAction(null);
+        setGeocodeCandidates([]);
+        showNotification('error', 'Elegí una dirección para continuar. No se guardó nada.');
+    };
     const handleDeleteProf = (id: string, name: string) => {
         if (confirm(`¿Estás seguro de eliminar a ${name}? Esta acción no se puede deshacer.`)) {
             deleteProfessional(id);
@@ -1141,6 +1249,68 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                    {/* Modal de selección de dirección (geocode) */}
+                    {showGeocodeModal && (
+                        <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm'>
+                            <div className='bg-white dark:bg-neutral-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-neutral-200 dark:border-neutral-800 relative max-h-[90vh] overflow-y-auto'>
+                                <div className='flex items-start justify-between mb-4'>
+                                    <div>
+                                        <h3 className='text-lg font-bold font-display text-neutral-900 dark:text-neutral-50'>
+                                            Elegí la dirección correcta
+                                        </h3>
+                                        <p className='text-xs text-neutral-500 mt-1'>
+                                            Georef encontró varias coincidencias para{' '}
+                                            <strong>{profFormData.address}</strong>. Seleccioná la
+                                            que corresponda.
+                                        </p>
+                                    </div>
+                                    <button
+                                        type='button'
+                                        onClick={handleCancelGeocodeModal}
+                                        className='p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className='space-y-2'>
+                                    {geocodeCandidates.map((c, idx) => (
+                                        <button
+                                            key={idx}
+                                            type='button'
+                                            onClick={() => handleSelectCandidate(c)}
+                                            className='w-full text-left p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-950/20 transition-colors'
+                                        >
+                                            <p className='text-sm font-bold text-neutral-900 dark:text-neutral-100'>
+                                                {c.label}
+                                            </p>
+                                            <p className='text-[11px] text-neutral-500 mt-0.5'>
+                                                📍{' '}
+                                                {c.localidad ||
+                                                    c.localidadCensal ||
+                                                    'Sin localidad'}{' '}
+                                                • {c.departamento || 'Sin partido'} •{' '}
+                                                {c.provincia || ''}
+                                            </p>
+                                            <p className='text-[10px] text-neutral-400 font-mono mt-1'>
+                                                {c.lat.toFixed(5)}, {c.lng.toFixed(5)}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className='mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex justify-end gap-2'>
+                                    <button
+                                        type='button'
+                                        onClick={handleCancelGeocodeModal}
+                                        className='py-2 px-4 text-xs font-bold rounded-xl text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Contact & Instagram */}
                     <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
@@ -1262,6 +1432,7 @@ export const AdminDashboard: React.FC = () => {
                         </button>
                         <button
                             type='submit'
+
                             className='py-2.5 px-6 text-xs font-bold rounded-xl bg-primary-400 hover:bg-primary-300 text-neutral-950 shadow-sm'
                         >
                             {editingProfId ? 'Guardar cambios' : 'Publicar profesional'}
