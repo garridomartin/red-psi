@@ -16,6 +16,7 @@ import {
     getStats,
     updateArticle,
     AppStats,
+    getProfessionalsForAdmin,
 } from '@/lib/data/dataStore';
 import { SPECIALTIES_CATALOG, INSURANCES_CATALOG } from '@/lib/data/mockData';
 import { ImageUploader } from './ImageUploader';
@@ -47,8 +48,8 @@ export const AdminDashboard: React.FC = () => {
         'list',
     );
     const [professionals, setProfessionals] = useState<Professional[]>([]);
+    console.log('🚀 ~ file: AdminDashboard.tsx:50 ~ professionals:', professionals);
     const [articles, setArticles] = useState<Article[]>([]);
-
     const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
     const [stats, setStats] = useState<AppStats>({
         totalViews: 0,
@@ -80,10 +81,6 @@ export const AdminDashboard: React.FC = () => {
         formData: any;
         slug: string;
     }>(null);
-    const [geocodeDebug, setGeocodeDebug] = useState<any>(null);
-    const [geocodeLoading, setGeocodeLoading] = useState(false);
-
-    // Geocode: debug (botón "Probar")
 
     // Form State for Professional
     const [editingProfId, setEditingProfId] = useState<string | null>(null);
@@ -158,10 +155,13 @@ export const AdminDashboard: React.FC = () => {
     }>({ checking: false, found: null, nombreSugerido: null });
 
     const loadAllData = async () => {
-        const [profs, arts] = await Promise.all([getProfessionals(), getArticles()]);
+        const [profs, arts] = await Promise.all([
+            getProfessionalsForAdmin(), // ← dashboard: ve todos (incluidos inactivos)
+            getArticles(),
+        ]);
         setProfessionals(profs);
         setArticles(arts);
-        setStats(getStats()); // getStats sigue siendo sync (localStorage)
+        setStats(getStats());
     };
 
     useEffect(() => {
@@ -236,28 +236,6 @@ export const AdminDashboard: React.FC = () => {
                 setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
             }
         }, 500); // 500ms debounce
-    };
-
-    const probarGeocode = async () => {
-        if (!profFormData.address || profFormData.address.trim().length < 3) {
-            setGeocodeDebug({ error: 'Escribí una dirección primero' });
-            return;
-        }
-        setGeocodeLoading(true);
-        setGeocodeDebug(null);
-        try {
-            const res = await fetch('/api/geocode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ address: profFormData.address }),
-            });
-            const data = await res.json();
-            setGeocodeDebug({ status: res.status, ...data });
-        } catch (err: any) {
-            setGeocodeDebug({ error: err.message });
-        } finally {
-            setGeocodeLoading(false);
-        }
     };
 
     const resetProfForm = () => {

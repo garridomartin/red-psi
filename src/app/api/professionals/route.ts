@@ -78,3 +78,26 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Error interno' }, { status: 500 });
     }
 }
+
+export async function GET() {
+    const session = await getSession();
+    if (!session) {
+        return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+    if (session.role !== 'admin') {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin
+        .from('professionals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error leyendo profesionales (admin):', error);
+        return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    }
+
+    return NextResponse.json({ professionals: data });
+}

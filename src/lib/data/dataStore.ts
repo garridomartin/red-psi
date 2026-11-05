@@ -28,6 +28,22 @@ export async function getProfessionalBySlug(slug: string): Promise<Professional 
     return data as Professional;
 }
 
+// ==========================================
+// GETS PROFESIONALES PARA ADMINS
+// ==========================================
+export async function getProfessionalsForAdmin(): Promise<Professional[]> {
+    const res = await fetch('/api/professionals', {
+        credentials: 'include',
+    });
+    if (!res.ok) {
+        console.error('Error fetching professionals (admin):', res.status);
+        return [];
+    }
+    const data = await res.json();
+    return (data.professionals ?? []) as Professional[];
+}
+
+
 export async function getArticles(): Promise<Article[]> {
     const { data, error } = await supabase.from('articles').select('*');
     if (error) {
@@ -179,3 +195,4 @@ export function getStats(): AppStats {
             '{"totalViews":0,"totalContacts":0,"totalFavorites":0}',
     );
 }
+
