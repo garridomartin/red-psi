@@ -229,7 +229,8 @@ export default function ProfessionalDetailPage() {
                                     Honorarios aproximados:
                                 </span>
                                 <span className='font-bold text-neutral-900 dark:text-neutral-100 text-sm'>
-                                    {professional.session_price || 'A convenir según reintegro'}
+                                    {/* {professional.session_price || 'A convenir según reintegro'} */}
+                                    Consultar
                                 </span>
                             </div>
                         </div>

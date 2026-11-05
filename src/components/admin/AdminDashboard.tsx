@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from 'react';
 import { Professional, Article, Gender, Modality } from '@/types';
 import {
-    getProfessionals,
     addProfessional,
     updateProfessional,
     deleteProfessional,

@@ -26,6 +26,8 @@ const ALLOWED = [
     'contact_phone',
     'session_price',
     'approach',
+    'example', // <-- AGREGAR
+    'client_age',
     'is_active',
     'is_featured',
     'whatsapp_number',

@@ -4,6 +4,8 @@ export type Gender = 'femenino' | 'masculino' | 'no-binario' | 'otro';
 
 export type UserRole = 'user' | 'admin';
 
+export type ClientAge = 'niños' | 'adolescentes' | 'jóvenes' | 'adultos';
+
 export interface User {
     id: string;
     email: string;
@@ -54,9 +56,20 @@ export interface Professional {
     is_featured: boolean;
     session_price?: string;
     approach?: string; // e.g. "Cognitivo-Conductual", "Psicoanalítico"
+    client_age?: ClientAge[];
     created_at?: string;
     updated_at?: string;
     deleted_at?: string;
+}
+
+export interface ProfessionalFilters {
+    searchQuery?: string;
+    gender?: 'all' | 'femenino' | 'masculino' | 'no-binario' | 'otro';
+    ageRange?: 'all' | '20-35' | '36-49' | '50+';
+    specialty?: string;
+    insurance?: string;
+    modality?: 'all' | 'presencial' | 'online' | 'ambas';
+    clientAge?: ClientAge[];
 }
 
 export interface Article {
@@ -85,6 +98,7 @@ export interface FilterState {
     insurance: string;
     modality: string; // 'all' | 'presencial' | 'online' | 'ambas'
     sortByProximity: boolean;
+    clientAge: ClientAge[];
 }
 
 export interface UserLocation {

@@ -46,10 +46,11 @@ CREATE TABLE IF NOT EXISTS public.professionals (
     birth_date DATE,
     specialties TEXT[] NOT NULL DEFAULT '{}',
     insurances TEXT[] NOT NULL DEFAULT '{}',
+    client_age TEXT[] NOT NULL DEFAULT '{}',
     modality TEXT NOT NULL CHECK (modality IN ('presencial', 'online', 'ambas')),
     address TEXT NOT NULL,
     neighborhood TEXT,
-    city TEXT DEFAULT 'Buenos Aires',
+    city TEXT DEFAULT 'La Plata',
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
     instagram_url TEXT NOT NULL,
@@ -62,11 +63,18 @@ CREATE TABLE IF NOT EXISTS public.professionals (
     views_count INTEGER NOT NULL DEFAULT 0,
     contacts_count INTEGER NOT NULL DEFAULT 0,
     whatsapp_number TEXT,
+    example SMALLINT CHECK (example IN (1, 2) OR example IS NULL),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
+-- Constraint de valores válidos para client_age (nombre idéntico al aplicado en la DB viva)
+ALTER TABLE public.professionals
+    ADD CONSTRAINT professionals_client_age_valid
+    CHECK (
+        client_age <@ ARRAY['niños','adolescentes','jóvenes','adultos']::TEXT[]
+    );
 
 -- 5. Tabla de Favoritos (PK Compuesta user_id, professional_id)
 CREATE TABLE IF NOT EXISTS public.favorites (
@@ -120,6 +128,8 @@ CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON public.favorites(user_id);
 -- Índices parciales para soft delete
 CREATE INDEX IF NOT EXISTS idx_professionals_visible ON public.professionals (id) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_articles_visible ON public.articles (id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_professionals_example ON public.professionals(example);
+CREATE INDEX IF NOT EXISTS idx_professionals_client_age ON public.professionals USING GIN (client_age);
 
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -209,7 +219,11 @@ create policy "matriculas_select_public"
 -- No creamos policies de insert/update para anon/authenticated,
 -- así que solo el service_role (que bypassea RLS) puede escribir.
 
--- Trigger para updated_at
+-- ==========================================
+-- FUNCIÓN Y TRIGGERS DE updated_at
+-- ==========================================
+
+-- Función compartida (debe definirse ANTES de los triggers que la usan)
 create or replace function public.handle_updated_at()
 returns trigger as $$
 begin
@@ -218,8 +232,16 @@ begin
 end;
 $$ language plpgsql;
 
+-- Trigger para matriculas
 drop trigger if exists trg_matriculas_updated_at on public.matriculas;
 create trigger trg_matriculas_updated_at
   before update on public.matriculas
+  for each row
+  execute function public.handle_updated_at();
+
+-- Trigger para professionals (reusa la misma función)
+drop trigger if exists trg_professionals_updated_at on public.professionals;
+create trigger trg_professionals_updated_at
+  before update on public.professionals
   for each row
   execute function public.handle_updated_at();

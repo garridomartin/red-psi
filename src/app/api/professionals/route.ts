@@ -28,6 +28,8 @@ const ALLOWED = [
     'approach',
     'is_active',
     'is_featured',
+    'example',      // <-- AGREGAR
+    'client_age',
     'whatsapp_number',
 ];
 

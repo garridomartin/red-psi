@@ -1,17 +1,70 @@
 //src\lib\data\dataStore.ts
 import { supabase } from '@/lib/supabase';
-import { Professional, Article } from '@/types';
+import { Professional, Article, ProfessionalFilters } from '@/types';
 import { MOCK_PROFESSIONALS, MOCK_ARTICLES } from './mockData';
 
 // ==========================================
 // LECTURAS (públicas, van directo a Supabase)
 // ==========================================
-export async function getProfessionals(): Promise<Professional[]> {
-    const { data, error } = await supabase.from('professionals').select('*');
+export async function getProfessionals(filters: ProfessionalFilters = {}): Promise<Professional[]> {
+    let query = supabase.from('professionals').select('*').is('deleted_at', null); // Solo traemos los no eliminados
+
+    // Solo activos (por defecto true, igual que hoy)
+    query = query.eq('is_active', true);
+
+    // Búsqueda de texto (nombre, bio o barrio)
+    if (filters.searchQuery?.trim()) {
+        const q = filters.searchQuery.trim();
+        query = query.or(`name.ilike.%${q}%,bio.ilike.%${q}%,neighborhood.ilike.%${q}%`);
+    }
+
+    // Género
+    if (filters.gender && filters.gender !== 'all') {
+        query = query.eq('gender', filters.gender);
+    }
+
+    // Modalidad
+    if (filters.modality && filters.modality !== 'all') {
+        if (filters.modality === 'ambas') {
+            query = query.eq('modality', 'ambas');
+        } else {
+            // Si pide "presencial", le mostramos los "presencial" y los "ambas"
+            query = query.in('modality', [filters.modality, 'ambas']);
+        }
+    }
+
+    // Especialidad (el array de la DB debe contener el valor)
+    if (filters.specialty && filters.specialty !== 'all') {
+        query = query.contains('specialties', [filters.specialty]);
+    }
+
+    // Obra social (el array de la DB debe contener el valor)
+    if (filters.insurance && filters.insurance !== 'all') {
+        query = query.contains('insurances', [filters.insurance]);
+    }
+
+    // Rango de edad del profesional
+    if (filters.ageRange && filters.ageRange !== 'all') {
+        if (filters.ageRange === '20-35') query = query.gte('age', 20).lte('age', 35);
+        if (filters.ageRange === '36-49') query = query.gte('age', 36).lte('age', 49);
+        if (filters.ageRange === '50+') query = query.gte('age', 50);
+    }
+
+    // Edad del paciente (client_age) - "overlaps" (&&) busca que compartan al menos un elemento
+    if (filters.clientAge && filters.clientAge.length > 0) {
+        query = query.overlaps('client_age', filters.clientAge);
+    }
+
+    // Ordenar por fecha de creación descendente por defecto
+    query = query.order('created_at', { ascending: false });
+
+    const { data, error } = await query;
+
     if (error) {
         console.error('Error fetching professionals:', error);
         return MOCK_PROFESSIONALS;
     }
+
     return data as Professional[];
 }
 
@@ -42,7 +95,6 @@ export async function getProfessionalsForAdmin(): Promise<Professional[]> {
     const data = await res.json();
     return (data.professionals ?? []) as Professional[];
 }
-
 
 export async function getArticles(): Promise<Article[]> {
     const { data, error } = await supabase.from('articles').select('*');
@@ -195,4 +247,3 @@ export function getStats(): AppStats {
             '{"totalViews":0,"totalContacts":0,"totalFavorites":0}',
     );
 }
-
