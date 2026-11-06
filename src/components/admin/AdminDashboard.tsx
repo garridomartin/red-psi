@@ -41,6 +41,8 @@ import {
     Tag,
     Search,
     X,
+    Check,
+    Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -429,34 +431,48 @@ export const AdminDashboard: React.FC = () => {
 
     // Función auxiliar que hace el guardado real
     const persistProf = async (finalData: any) => {
-        const toastId = toast.loading(
-            editingProfId ? 'Actualizando profesional…' : 'Guardando profesional…',
+        // 1. Reemplazamos toast.loading por toast.custom
+        const loadingId = toast.custom(
+            () => (
+                <div className='flex items-center gap-3 w-full shadow-lg font-sans'>
+                    <Loader2 className='w-5 h-5 animate-spin text-neutral-500 shrink-0' />
+                    <span className='text-sm font-bold text-neutral-900 dark:text-neutral-100'>
+                        {editingProfId ? 'Actualizando profesional…' : 'Guardando profesional…'}
+                    </span>
+                </div>
+            ),
+            { duration: Infinity }, // Queda abierto hasta que lo cerremos
         );
+
         try {
             if (editingProfId) {
                 await updateProfessional(editingProfId, finalData);
             } else {
                 await addProfessional(finalData);
             }
+
             resetProfForm();
             await loadAllData();
             setActiveTab('list');
+
+            // 2. Cerramos el custom y mostramos el éxito
+            toast.dismiss(loadingId);
             toast.success(
                 editingProfId
                     ? `Profesional "${finalData.name}" actualizado.`
                     : `Nuevo profesional "${finalData.name}" registrado.`,
-                { id: toastId },
             );
         } catch (err: any) {
             console.error('🔴 [AdminDashboard] Error al guardar:', err.message);
+
+            // 3. Cerramos el custom y mostramos el error
+            toast.dismiss(loadingId);
             toast.error('No se pudo guardar el profesional.', {
-                id: toastId,
                 description: err?.message ?? 'Revisá los datos e intentá de nuevo.',
                 duration: 8000,
             });
         }
     };
-
     // Handler cuando el admin elige un candidato en el modal
     const handleSelectCandidate = async (candidate: (typeof geocodeCandidates)[0]) => {
         if (!geocodePendingAction || geocodePendingAction.type !== 'save') {
@@ -492,13 +508,59 @@ export const AdminDashboard: React.FC = () => {
     };
 
     const handleDeleteProf = (id: string, name: string) => {
-        if (confirm(`¿Estás seguro de eliminar a ${name}? Esta acción no se puede deshacer.`)) {
-            deleteProfessional(id);
-            loadAllData();
-            showNotification('success', `Profesional ${name} eliminado.`);
-        }
+        toast.custom(
+            (t) => (
+                <div className='flex flex-col gap-3 p-4 rounded-2xl border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 shadow-lg w-full'>
+                    <div>
+                        <p className='text-sm font-bold text-neutral-900 dark:text-neutral-100'>
+                            ¿Eliminar a &quot;{name}&quot;?
+                        </p>
+                        <p className='text-xs text-neutral-500 mt-0.5'>
+                            Esta acción no se puede deshacer.
+                        </p>
+                    </div>
+                    <div className='flex gap-2 justify-end'>
+                        {/* Cancelar: ícono en mobile, texto en desktop */}
+                        <button
+                            onClick={() => toast.dismiss(t)}
+                            className='inline-flex items-center justify-center gap-1.5 text-xs font-bold rounded-lg px-4 py-2 min-w-[88px] bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+                            aria-label='Cancelar'
+                        >
+                            <X className='w-4 h-4 sm:hidden' />
+                            <span className='hidden sm:inline'>Cancelar</span>
+                        </button>
+                        {/* Eliminar: ícono en mobile, texto en desktop */}
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t);
+                                const loadingId = toast.loading('Eliminando profesional…');
+                                try {
+                                    await deleteProfessional(id);
+                                    await loadAllData();
+                                    toast.success(`Profesional "${name}" eliminado.`, {
+                                        id: loadingId,
+                                    });
+                                } catch (err: any) {
+                                    toast.error('No se pudo eliminar el profesional.', {
+                                        id: loadingId,
+                                        description:
+                                            err?.message ?? 'Intentá de nuevo en unos segundos.',
+                                        duration: 8000,
+                                    });
+                                }
+                            }}
+                            className='inline-flex items-center justify-center gap-1.5 text-xs font-bold rounded-lg px-4 py-2 min-w-[88px] bg-red-600 text-white'
+                            aria-label='Eliminar'
+                        >
+                            <Check className='w-4 h-4 sm:hidden' />
+                            <span className='hidden sm:inline'>Eliminar</span>
+                        </button>
+                    </div>
+                </div>
+            ),
+            { duration: Infinity },
+        );
     };
-
     const handleToggleFeatured = (p: Professional) => {
         toggleFeaturedProfessional(p.id, p.is_featured);
         loadAllData();
@@ -558,18 +620,35 @@ export const AdminDashboard: React.FC = () => {
         }
     };
 
-    const handleDeleteArticle = async (id: string, title: string) => {
-        if (!confirm(`¿Eliminar artículo "${title}"?`)) return;
-
-        try {
-            await deleteArticle(id);
-            await loadAllData();
-            showNotification('success', 'Artículo eliminado.');
-        } catch (err: any) {
-            console.error('Error eliminando artículo:', err);
-            showNotification('error', err.message || 'No se pudo eliminar el artículo.');
-        }
+    const handleDeleteArticle = (id: string, title: string) => {
+        toast(`¿Eliminar artículo "${title}"?`, {
+            description: 'Esta acción no se puede deshacer.',
+            duration: Infinity,
+            action: {
+                label: 'Eliminar',
+                onClick: async () => {
+                    const t = toast.loading('Eliminando artículo…');
+                    try {
+                        await deleteArticle(id);
+                        await loadAllData();
+                        toast.success('Artículo eliminado.', { id: t });
+                    } catch (err: any) {
+                        console.error('Error eliminando artículo:', err);
+                        toast.error('No se pudo eliminar el artículo.', {
+                            id: t,
+                            description: err?.message ?? 'Intentá de nuevo en unos segundos.',
+                            duration: 8000,
+                        });
+                    }
+                },
+            },
+            cancel: {
+                label: 'Cancelar',
+                onClick: () => toast.dismiss(),
+            },
+        });
     };
+
     // ===== Búsqueda de profesionales =====
     const normalize = (s: string) =>
         s
