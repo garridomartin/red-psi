@@ -73,9 +73,10 @@ export const INSURANCES_CATALOG: Insurance[] = [
     { id: '8', name: 'OSFATUN', slug: 'osfatun', category: 'obra-social' },
     { id: '9', name: 'OSPE', slug: 'ospe', category: 'obra-social' },
     { id: '10', name: 'OSPJN', slug: 'ospjn', category: 'obra-social' },
-    { id: '11', name: 'PRIMEDI', slug: 'primedi', category: 'obra-social' },
+    { id: '11', name: 'PRIMEDIC', slug: 'primedic', category: 'obra-social' },
     { id: '12', name: 'SADAIC', slug: 'sadaic', category: 'obra-social' },
     { id: '13', name: 'PEQUEÑA FAMILIA', slug: 'fequena-familia', category: 'obra-social' },
+    { id: '14', name: 'OSDE', slug: 'osde', category: 'prepaga' },
 ];
 
 export const MOCK_PROFESSIONALS: Professional[] = [

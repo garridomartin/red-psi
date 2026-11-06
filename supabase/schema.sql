@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
 ALTER TABLE public.professionals
     ADD CONSTRAINT professionals_client_age_valid
     CHECK (
-        client_age <@ ARRAY['ninos','adolescentes','jovenes','adultos']::TEXT[]
+        client_age <@ ARRAY['ninos','adolescentes','jovenes','adultos','adultos-mayores']::TEXT[]
     );
 
 -- 5. Tabla de Favoritos (PK Compuesta user_id, professional_id)

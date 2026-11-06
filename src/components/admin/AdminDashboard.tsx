@@ -1078,6 +1078,7 @@ export const AdminDashboard: React.FC = () => {
                                     { id: 'adolescentes', label: 'Adolescentes' },
                                     { id: 'jovenes', label: 'Jóvenes' },
                                     { id: 'adultos', label: 'Adultos' },
+                                    { id: 'adultos-mayores', label: 'Adultos Mayores' },
                                 ].map((opt) => {
                                     const checked = profFormData.client_age.includes(
                                         opt.id as ClientAge,

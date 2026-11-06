@@ -4,7 +4,7 @@ export type Gender = 'femenino' | 'masculino' | 'no-binario' | 'otro';
 
 export type UserRole = 'user' | 'admin';
 
-export type ClientAge = 'ninos' | 'adolescentes' | 'jovenes' | 'adultos';
+export type ClientAge = 'ninos' | 'adolescentes' | 'jovenes' | 'adultos' | 'adultos-mayores';
 
 export interface User {
     id: string;

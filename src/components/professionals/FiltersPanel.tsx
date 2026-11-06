@@ -184,8 +184,10 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({
                             { id: 'adolescentes', label: 'Adolescentes' },
                             { id: 'jovenes', label: 'Jóvenes' },
                             { id: 'adultos', label: 'Adultos' },
+                            { id: 'adultos-mayores', label: 'Adultos Mayores' },
                         ] as { id: ClientAge; label: string }[]
-                    ).map((opt) => {
+                    ).map((opt, index) => {
+                        // <-- AGREGAR 'index' ACÁ
                         const active = filters.clientAge.includes(opt.id);
                         return (
                             <button
@@ -197,7 +199,7 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({
                                     active
                                         ? 'bg-primary-400/20 text-neutral-900 dark:text-neutral-100 border-primary-400 font-bold'
                                         : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300'
-                                }`}
+                                } ${index === 4 ? 'col-span-2' : ''}`} // <-- ACÁ AGREGÁS LA CONDICIÓN
                             >
                                 {opt.label}
                             </button>
