@@ -4,7 +4,7 @@ export type Gender = 'femenino' | 'masculino' | 'no-binario' | 'otro';
 
 export type UserRole = 'user' | 'admin';
 
-export type ClientAge = 'niños' | 'adolescentes' | 'jóvenes' | 'adultos';
+export type ClientAge = 'ninos' | 'adolescentes' | 'jovenes' | 'adultos';
 
 export interface User {
     id: string;
@@ -57,6 +57,7 @@ export interface Professional {
     session_price?: string;
     approach?: string; // e.g. "Cognitivo-Conductual", "Psicoanalítico"
     client_age?: ClientAge[];
+    example: 1 | 2 | null;
     created_at?: string;
     updated_at?: string;
     deleted_at?: string;

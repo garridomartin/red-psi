@@ -37,6 +37,8 @@ export const professionalSchema = z.object({
     whatsapp_number: z.string().optional(),
     session_price: z.string().optional(),
     approach: z.string().optional(),
+    client_age: z.array(z.string()).optional(),
+    example: z.union([z.literal(1), z.literal(2), z.null()]).optional(),
     is_active: z.boolean().default(true),
     is_featured: z.boolean().default(false),
 });

@@ -180,9 +180,9 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({
                 <div className='grid grid-cols-2 gap-2'>
                     {(
                         [
-                            { id: 'niños', label: 'Niños' },
+                            { id: 'ninos', label: 'Niños' },
                             { id: 'adolescentes', label: 'Adolescentes' },
-                            { id: 'jóvenes', label: 'Jóvenes' },
+                            { id: 'jovenes', label: 'Jóvenes' },
                             { id: 'adultos', label: 'Adultos' },
                         ] as { id: ClientAge; label: string }[]
                     ).map((opt) => {

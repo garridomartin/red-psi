@@ -35,8 +35,7 @@ INSERT INTO public.specialties (id, name, slug, description) VALUES
 ('8',  'Neuropsicología y Cognición',         'neuropsicologia',  'Evaluación y estimulación de funciones cerebrales y procesos cognitivos.'),
 ('9',  'Diversidad y Género',                 'diversidad-genero','Espacio seguro y afirmativo para la comunidad LGBTIQ+ y diversidad de género.'),
 ('10', 'Psicología Perinatal',                'perinatal',        'Acompañamiento en fertilidad, embarazo, puerperio y primeros años de crianza.'),
-('11', 'Adolescentes y Jóvenes',              'adolescentes',     'Transición a la adultez, orientación vocacional y construcción de identidad.'),
-('12', 'Trauma y EMDR',                       'trauma-emdr',      'Procesamiento de vivencias traumáticas y desensibilización emocional.');
+('11', 'Trauma y EMDR',                       'trauma-emdr',      'Procesamiento de vivencias traumáticas y desensibilización emocional.');
 
 -- 4) OBRAS SOCIALES / PREPAGAS (8)
 INSERT INTO public.insurances (id, name, slug, category) VALUES
@@ -88,7 +87,7 @@ INSERT INTO public.professionals (
   'Especialista en terapia vincular y dinámica familiar. Trabajo con parejas y personas individuales que desean mejorar su comunicación, resolver crisis afectivas y establecer acuerdos saludables. Atención 100% online con amplia flexibilidad horaria tanto para residentes de Argentina como personas viviendo en el exterior.',
   'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80',
   'femenino', 29, '1995-11-14',
-  ARRAY['Terapia Sistémica', 'Terapia de Pareja', 'Adolescentes y Jóvenes'],
+  ARRAY['Terapia Sistémica', 'Terapia de Pareja'],
   ARRAY['Medifé', 'Swiss Medical', 'Particular'],
   'online', 'Av. Cabildo 2100, Belgrano, CABA', 'Belgrano', 'Buenos Aires', -34.5623, -58.4561,
   'https://instagram.com/camila.psicologia', 'lic.camila.restrepo@gmail.com', '+5491167890123', '5491167890123',
@@ -127,7 +126,7 @@ INSERT INTO public.professionals (
   'Terapeuta gestaltista enfocado en el autoconocimiento, la autenticidad y el despliegue del potencial personal. Trabajo especialmente con jóvenes y adultos en momentos de transición vocacional, crisis de sentido y problemas vinculares. Propongo un encuentro vivo, honesto y profundamente transformador.',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
   'masculino', 33, '1991-09-02',
-  ARRAY['Adolescentes y Jóvenes', 'Ansiedad y Estrés', 'Terapia Sistémica'],
+  ARRAY['Ansiedad y Estrés', 'Terapia Sistémica'],
   ARRAY['Galeno', 'Medifé', 'Particular'],
   'ambas', 'Malabia 1700, Villa Crespo, CABA', 'Villa Crespo', 'Buenos Aires', -34.5947, -58.4340,
   'https://instagram.com/franco.zaccaria.psi', 'contacto@francozaccaria.com.ar', '+5491190123456', '5491190123456',
@@ -166,7 +165,7 @@ INSERT INTO public.professionals (
   'Espacio terapéutico afirmativo para identidades diversas, personas no binarias, trans y del colectivo LGBTIQ+. Acompañamiento en procesos de autoafirmación, deconstrucción vincular, ansiedad social y fortalecimiento de la autoestima en un marco de respeto incondicional y seguridad.',
   'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80',
   'no-binario', 35, '1989-10-10',
-  ARRAY['Diversidad y Género', 'Ansiedad y Estrés', 'Adolescentes y Jóvenes'],
+  ARRAY['Diversidad y Género', 'Ansiedad y Estrés'],
   ARRAY['IOMA', 'Particular', 'OSDE'],
   'ambas', 'Av. Triunvirato 3800, Villa Urquiza, CABA', 'Villa Urquiza', 'Buenos Aires', -34.5772, -58.4735,
   'https://instagram.com/mora.cardenas.psi', 'mora.cardenas.terapia@gmail.com', '+5491145612345', '5491145612345',

@@ -177,6 +177,23 @@ export async function toggleActiveProfessional(id: string, currentValue: boolean
     window.dispatchEvent(new Event('red_epsilon_data_changed'));
 }
 
+export async function updateProfessionalExample(id: string, exampleValue: 1 | 2 | null) {
+    const res = await fetch(`/api/professionals/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ example: exampleValue }),
+    });
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error actualizando ejemplo');
+    }
+    // Opcional: emitir el evento para refrescar listas si es necesario
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('red_epsilon_data_changed'));
+    }
+    return res.json();
+}
+
 // ==========================================
 // ARTÍCULOS (escrituras — por ahora siguen con supabase anónimo)
 // ==========================================

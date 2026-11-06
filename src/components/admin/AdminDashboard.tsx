@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Professional, Article, Gender, Modality } from '@/types';
+import { Professional, Article, Gender, Modality, ClientAge } from '@/types';
 import {
     addProfessional,
     updateProfessional,
@@ -16,6 +16,7 @@ import {
     updateArticle,
     AppStats,
     getProfessionalsForAdmin,
+    updateProfessionalExample,
 } from '@/lib/data/dataStore';
 import { SPECIALTIES_CATALOG, INSURANCES_CATALOG } from '@/lib/data/mockData';
 import { ImageUploader } from './ImageUploader';
@@ -47,7 +48,7 @@ export const AdminDashboard: React.FC = () => {
         'list',
     );
     const [professionals, setProfessionals] = useState<Professional[]>([]);
-    console.log('🚀 ~ file: AdminDashboard.tsx:50 ~ professionals:', professionals);
+
     const [articles, setArticles] = useState<Article[]>([]);
     const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
     const [stats, setStats] = useState<AppStats>({
@@ -105,6 +106,8 @@ export const AdminDashboard: React.FC = () => {
         session_price: string;
         approach: string;
         is_active: boolean;
+        client_age: ClientAge[];
+        example: 1 | 2 | null;
         is_featured: boolean;
     }>({
         name: '',
@@ -127,6 +130,8 @@ export const AdminDashboard: React.FC = () => {
         contact_phone: '+549221',
         session_price: '$40.000 / sesión',
         approach: '',
+        client_age: [],
+        example: null,
         is_active: true,
         is_featured: false,
     });
@@ -248,7 +253,7 @@ export const AdminDashboard: React.FC = () => {
             gender: 'femenino',
             age: 32,
             specialties: ['Terapia Cognitivo Conductual (TCC)'],
-            insurances: ['OSDE', 'Particular'],
+            insurances: ['Particular'],
             modality: 'ambas',
             address: 'Av. Corrientes 2000, CABA',
             neighborhood: 'Balvanera',
@@ -258,8 +263,10 @@ export const AdminDashboard: React.FC = () => {
             instagram_url: 'https://instagram.com/',
             contact_email: '',
             contact_phone: '+549221',
-            session_price: '$32.000 / sesión',
+            session_price: 'consultar',
             approach: 'Integrativo y Basado en Evidencia',
+            client_age: [],
+            example: null,
             is_active: true,
             is_featured: false,
         });
@@ -318,6 +325,8 @@ export const AdminDashboard: React.FC = () => {
             contact_phone: prof.contact_phone,
             session_price: prof.session_price || '',
             approach: prof.approach || '',
+            client_age: prof.client_age || [],
+            example: prof.example || null,
             is_active: prof.is_active,
             is_featured: prof.is_featured,
         });
@@ -579,6 +588,35 @@ export const AdminDashboard: React.FC = () => {
         setAppliedFilter(null);
         setSearchFocused(false);
     };
+
+    const handleToggleExample = async (prof: Professional, val: 1 | 2) => {
+        try {
+            // 1. Si el prof ya tiene este valor, lo desmarcamos (null)
+            if (prof.example === val) {
+                await updateProfessionalExample(prof.id, null);
+            } else {
+                // 2. Si otro profesional ya tiene este valor, lo desmarcamos primero
+                const otherProfWithSameVal = professionals.find(
+                    (p) => p.example === val && p.id !== prof.id,
+                );
+
+                if (otherProfWithSameVal) {
+                    await updateProfessionalExample(otherProfWithSameVal.id, null);
+                }
+
+                // 3. Asignamos el nuevo valor
+                await updateProfessionalExample(prof.id, val);
+            }
+
+            // 4. Recargamos los datos en el admin para ver los cambios
+            await loadAllData();
+            showNotification('success', 'Ejemplos actualizados correctamente.');
+        } catch (err: any) {
+            console.error(err);
+            showNotification('error', 'No se pudo actualizar el ejemplo.');
+        }
+    };
+
     return (
         <div className='space-y-8'>
             {/* Top Banner / Feedback alert */}
@@ -749,6 +787,7 @@ export const AdminDashboard: React.FC = () => {
                                         <th className='p-4'>Modalidad</th>
                                         <th className='p-4'>Ubicación</th>
                                         <th className='p-4 text-center'>Destacado</th>
+                                        <th className='p-4 text-center'>Ejemplo</th>
                                         <th className='p-4 text-center'>Estado</th>
                                         <th className='p-4 text-right'>Acciones</th>
                                     </tr>
@@ -814,6 +853,34 @@ export const AdminDashboard: React.FC = () => {
                                                         />
                                                     </button>
                                                 </td>
+                                                <td className='p-4 text-center'>
+                                                    <div className='flex items-center justify-center gap-1.5'>
+                                                        {[1, 2].map((val) => {
+                                                            const isActive = p.example === val;
+                                                            return (
+                                                                <button
+                                                                    key={val}
+                                                                    type='button'
+                                                                    onClick={() =>
+                                                                        handleToggleExample(
+                                                                            p,
+                                                                            val as 1 | 2,
+                                                                        )
+                                                                    }
+                                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs border transition-all ${
+                                                                        isActive
+                                                                            ? 'bg-primary-400 border-primary-500 text-neutral-950 shadow-sm'
+                                                                            : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-400 hover:border-neutral-300'
+                                                                    }`}
+                                                                    title={`Marcar como Ejemplo ${val}`}
+                                                                >
+                                                                    {val}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </td>
+
                                                 <td className='p-4 text-center'>
                                                     <button
                                                         onClick={() => handleToggleActive(p)}
@@ -999,6 +1066,60 @@ export const AdminDashboard: React.FC = () => {
                                     </a>
                                 </div>
                             )}
+                        </div>
+                        {/* Client Age Selector (Edad del paciente) */}
+                        <div>
+                            <label className='block text-xs font-bold text-neutral-800 dark:text-neutral-200 mb-2'>
+                                Edad del paciente (A quién atiende)
+                            </label>
+                            <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
+                                {[
+                                    { id: 'ninos', label: 'Niños' },
+                                    { id: 'adolescentes', label: 'Adolescentes' },
+                                    { id: 'jovenes', label: 'Jóvenes' },
+                                    { id: 'adultos', label: 'Adultos' },
+                                ].map((opt) => {
+                                    const checked = profFormData.client_age.includes(
+                                        opt.id as ClientAge,
+                                    );
+                                    return (
+                                        <label
+                                            key={opt.id}
+                                            className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                                                checked
+                                                    ? 'bg-primary-400/20 border-primary-400 text-neutral-900 dark:text-neutral-100 font-semibold'
+                                                    : 'border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400'
+                                            }`}
+                                        >
+                                            <input
+                                                type='checkbox'
+                                                checked={checked}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setProfFormData({
+                                                            ...profFormData,
+                                                            client_age: [
+                                                                ...profFormData.client_age,
+                                                                opt.id as ClientAge,
+                                                            ],
+                                                        });
+                                                    } else {
+                                                        setProfFormData({
+                                                            ...profFormData,
+                                                            client_age:
+                                                                profFormData.client_age.filter(
+                                                                    (item) => item !== opt.id,
+                                                                ),
+                                                        });
+                                                    }
+                                                }}
+                                                className='rounded text-primary-500 focus:ring-primary-400'
+                                            />
+                                            <span className='truncate'>{opt.label}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
 

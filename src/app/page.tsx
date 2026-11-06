@@ -2,21 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getProfessionals } from '@/lib/data/dataStore';
+import { getProfessionals, updateProfessionalExample } from '@/lib/data/dataStore';
 import { Professional } from '@/types';
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard';
 import { Compass, Sparkles, Instagram, ArrowRight, ChevronRight, MapPin } from 'lucide-react';
 
 export default function HomePage() {
     const [featuredProfessionals, setFeaturedProfessionals] = useState<Professional[]>([]);
+    const [exampleProfessionals, setExampleProfessionals] = useState<Professional[]>([]);
 
     useEffect(() => {
         const load = async () => {
             const list = await getProfessionals();
             setFeaturedProfessionals(list.filter((p) => p.is_featured && p.is_active));
+            setExampleProfessionals(list.filter((p) => p.example));
         };
+
         load();
     }, []);
+
+    const exampleOne = exampleProfessionals.find((p) => p.example === 1);
+    const exampleTwo = exampleProfessionals.find((p) => p.example === 2);
     return (
         <div className='space-y-24 pb-20 overflow-hidden'>
             {/* HERO SECTION */}
@@ -241,13 +247,13 @@ export default function HomePage() {
                                 </div>
                                 <div className='aspect-square rounded-xl bg-neutral-800/80 overflow-hidden relative'>
                                     <img
-                                        src={featuredProfessionals[0]?.photo_url}
+                                        src={exampleOne?.photo_url}
                                         alt='Tarjeta Instagram'
                                         className='w-full h-full object-cover'
                                     />
                                     <div className='absolute inset-0 bg-neutral-950/40 p-2.5 flex flex-col justify-end'>
                                         <p className='text-[11px] font-bold leading-tight'>
-                                            {featuredProfessionals[0]?.name}
+                                            {exampleOne?.name}
                                         </p>
                                     </div>
                                 </div>
@@ -264,13 +270,13 @@ export default function HomePage() {
                                 </div>
                                 <div className='aspect-square rounded-xl bg-neutral-800/80 overflow-hidden relative'>
                                     <img
-                                        src={featuredProfessionals[1]?.photo_url}
+                                        src={exampleTwo?.photo_url}
                                         alt='Tarjeta Instagram'
                                         className='w-full h-full object-cover'
                                     />
                                     <div className='absolute inset-0 bg-neutral-950/40 p-2.5 flex flex-col justify-end'>
                                         <p className='text-[11px] font-bold leading-tight'>
-                                            {featuredProfessionals[1]?.name}
+                                            {exampleTwo?.name}
                                         </p>
                                     </div>
                                 </div>
