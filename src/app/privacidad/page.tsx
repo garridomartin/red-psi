@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
             4. Derechos de Acceso, Rectificación y Supresión
           </h2>
           <p>
-            Todo usuario puede ejercer sus derechos de acceso, actualización, rectificación o supresión de sus datos personales enviando un correo electrónico a <code>privacidad@redepsilon.com.ar</code>.
+            Todo usuario puede ejercer sus derechos de acceso, actualización, rectificación o supresión de sus datos personales enviando un correo electrónico a <code>privacidad@redpsicologos.com.ar</code>.
           </p>
         </section>
       </div>

@@ -1,5 +1,8 @@
-//src/app/api/geocode/route.ts
+// src/app/api/geocode/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+
+// Provincia mockeada (pedido: siempre Buenos Aires)
+const MOCK_PROVINCIA = 'Buenos Aires';
 
 export async function POST(req: NextRequest) {
     try {
@@ -8,16 +11,46 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Dirección inválida' }, { status: 400 });
         }
 
-        const url = `https://apis.datos.gob.ar/georef/api/v2.0/direcciones?direccion=${encodeURIComponent(
-            address.trim(),
-        )}&max=10`;
+        // Parseo simple: "Calle 12 esquina Calle 55, La Plata"
+        // -> direccion: "Calle 12 esquina Calle 55"
+        // -> localidad_censal: "La Plata"
+        // -> provincia: "Buenos Aires" (mockeada)
+        const parts = address
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        const direccion = parts[0] ?? address.trim();
+        const localidadCensal = parts[1] ?? null;
+        const provincia = MOCK_PROVINCIA;
+
+        const params = new URLSearchParams({
+            direccion,
+            provincia,
+            max: '10',
+        });
+        if (localidadCensal) {
+            params.set('localidad_censal', localidadCensal);
+        }
+
+        const url = `https://apis.datos.gob.ar/georef/api/v2.0/direcciones?${params.toString()}`;
+
+        // Guardamos el query para devolverlo y poder debuggear desde /prueba
+        const query = {
+            direccion,
+            localidad_censal: localidadCensal,
+            provincia,
+        };
 
         const res = await fetch(url, {
             headers: { Accept: 'application/json' },
         });
 
         if (!res.ok) {
-            return NextResponse.json({ error: 'Error consultando Georef' }, { status: 502 });
+            return NextResponse.json(
+                { error: 'Error consultando Georef', query, url },
+                { status: 502 },
+            );
         }
 
         const data = await res.json();
@@ -38,7 +71,11 @@ export async function POST(req: NextRequest) {
 
         if (withCoords.length === 0) {
             return NextResponse.json(
-                { error: 'Dirección encontrada pero sin coordenadas disponibles' },
+                {
+                    error: 'Dirección encontrada pero sin coordenadas disponibles',
+                    query,
+                    totalGeoref: direcciones.length,
+                },
                 { status: 404 },
             );
         }
@@ -49,6 +86,8 @@ export async function POST(req: NextRequest) {
             lat: withCoords[0].lat,
             lng: withCoords[0].lng,
             normalized: withCoords[0].label,
+            // Info de debug: qué se le mandó a Georef
+            query,
         });
     } catch (err) {
         console.error('Error geocodificando:', err);

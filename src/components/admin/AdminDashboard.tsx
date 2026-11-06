@@ -82,6 +82,12 @@ export const AdminDashboard: React.FC = () => {
         slug: string;
     }>(null);
 
+    const [geocodeQuery, setGeocodeQuery] = useState<{
+        direccion: string;
+        localidad_censal: string | null;
+        provincia: string;
+    } | null>(null);
+
     // Form State for Professional
     const [editingProfId, setEditingProfId] = useState<string | null>(null);
     const [profFormData, setProfFormData] = useState<{
@@ -255,11 +261,11 @@ export const AdminDashboard: React.FC = () => {
             specialties: ['Terapia Cognitivo Conductual (TCC)'],
             insurances: ['Particular'],
             modality: 'ambas',
-            address: 'Av. Corrientes 2000, CABA',
-            neighborhood: 'Balvanera',
-            city: 'Buenos Aires',
-            lat: -34.6037,
-            lng: -58.3816,
+            address: 'Ej: Calle 12 esquina Calle 55',
+            neighborhood: 'La Plata',
+            city: 'La Plata',
+            lat: -34.9192637,
+            lng: -57.9558382,
             instagram_url: 'https://instagram.com/',
             contact_email: '',
             contact_phone: '+549221',
@@ -354,22 +360,31 @@ export const AdminDashboard: React.FC = () => {
         }
 
         // 3. Geocodificar la dirección (si tiene sentido)
+        //    Combinamos address (calle) + neighborhood (ciudad) en una sola línea:
+        //    "Calle 55 y Calle 2, La Plata"
         let candidates: typeof geocodeCandidates = [];
-        if (profFormData.address && profFormData.address.trim().length >= 5) {
+        let query: typeof geocodeQuery = null;
+        const fullAddress = [profFormData.address, profFormData.neighborhood]
+            .map((s) => s?.trim())
+            .filter(Boolean)
+            .join(', ');
+        if (fullAddress.length >= 5) {
             try {
                 const geoRes = await fetch('/api/geocode', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ address: profFormData.address }),
+                    body: JSON.stringify({ address: fullAddress }),
                 });
                 if (geoRes.ok) {
                     const geoData = await geoRes.json();
                     candidates = geoData.candidates ?? [];
+                    query = geoData.query ?? null;
                 }
             } catch (err) {
                 console.error('Error geocodificando, se usan coordenadas actuales:', err);
             }
         }
+        setGeocodeQuery(query);
 
         // 4. Preparar los datos finales (con las coords actuales por ahora)
         const buildFinalData = (lat: number, lng: number) => ({
@@ -435,6 +450,7 @@ export const AdminDashboard: React.FC = () => {
         };
         setGeocodePendingAction(null);
         setGeocodeCandidates([]);
+        setGeocodeQuery(null);
         await persistProf(finalData);
     };
 
@@ -449,8 +465,10 @@ export const AdminDashboard: React.FC = () => {
         setShowGeocodeModal(false);
         setGeocodePendingAction(null);
         setGeocodeCandidates([]);
+        setGeocodeQuery(null);
         showNotification('error', 'Elegí una dirección para continuar. No se guardó nada.');
     };
+
     const handleDeleteProf = (id: string, name: string) => {
         if (confirm(`¿Estás seguro de eliminar a ${name}? Esta acción no se puede deshacer.`)) {
             deleteProfessional(id);
@@ -1294,7 +1312,7 @@ export const AdminDashboard: React.FC = () => {
                                 onChange={(e) =>
                                     setProfFormData({ ...profFormData, address: e.target.value })
                                 }
-                                placeholder='Av. Santa Fe 3200'
+                                placeholder='Ej: Calle 12 esquina Calle 55, La Plata'
                                 className='w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
                             />
                         </div>
@@ -1311,7 +1329,7 @@ export const AdminDashboard: React.FC = () => {
                                         neighborhood: e.target.value,
                                     })
                                 }
-                                placeholder='Palermo'
+                                placeholder='La Plata'
                                 className='w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
                             />
                         </div>

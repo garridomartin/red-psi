@@ -17,7 +17,7 @@ export const professionalSchema = z.object({
     name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
     title: z.string().min(3, 'El título profesional es requerido'),
     license: z.string().min(3, 'La matrícula es requerida (ej: 12345)'),
-    bio: z.string().min(30, 'La descripción o bio debe tener al menos 30 caracteres'),
+    bio: z.string().optional(),
     photo_url: z.string().optional(),
     gender: z.enum(['femenino', 'masculino', 'no-binario', 'otro']),
     age: z.coerce.number().min(22, 'Edad mínima: 22').max(99, 'Edad máxima: 99'),

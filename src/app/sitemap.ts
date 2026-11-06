@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { getProfessionals, getArticles } from '@/lib/data/dataStore';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://redepsilon.com.ar';//fixme
+    const baseUrl = 'https://redpsicologos.com.ar';
 
     // Trae datos de Postgres (o mocks si Supabase no está configurado)
     const [professionals, articles] = await Promise.all([getProfessionals(), getArticles()]);

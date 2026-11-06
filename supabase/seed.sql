@@ -77,7 +77,7 @@ INSERT INTO public.professionals (
   ARRAY['Psicoanálisis', 'Depresión y Duelo', 'Terapia de Pareja'],
   ARRAY['OSDE', 'Galeno', 'Particular'],
   'presencial', 'Av. Corrientes 4500, Almagro, CABA', 'Almagro', 'Buenos Aires', -34.6042, -58.4278,
-  'https://instagram.com/lic.martinecheverria', 'martin.echeverria@redepsilon.com', '+5491156789012', '5491156789012',
+  'https://instagram.com/lic.martinecheverria', 'martin.echeverria@redpsicologos.com', '+5491156789012', '5491156789012',
   '$25.000 / sesión', 'Psicoanálisis Contemporáneo', true, true,
   '2024-01-18T11:00:00Z', '2024-06-02T15:00:00Z'
 ),
@@ -193,7 +193,7 @@ INSERT INTO public.professionals (
   'masculino', 40, '1985-01-01',
   ARRAY['Psicoanálisis'], ARRAY['Particular'],
   'online', 'Dirección de ejemplo', 'Palermo', 'Buenos Aires', -34.5885, -58.4112,
-  'https://instagram.com/ejemplo', 'ejemplo@redepsilon.com', '+5491100000000', '5491100000000',
+  'https://instagram.com/ejemplo', 'ejemplo@redpsicologos.com.ar', '+5491100000000', '5491100000000',
   '$0 / sesión', 'Ejemplo', true, false,
   '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z',
   '2026-02-02T15:30:00Z'   -- 👈 ya pausado

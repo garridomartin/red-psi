@@ -137,7 +137,7 @@ export const MOCK_PROFESSIONALS: Professional[] = [
         lat: -34.6042,
         lng: -58.4278,
         instagram_url: 'https://instagram.com/lic.martinecheverria',
-        contact_email: 'martin.echeverria@redepsilon.com',
+        contact_email: 'martin.echeverria@redpsicologos.com',
         contact_phone: '+5491156789012',
         whatsapp_number: '5491156789012',
         is_active: true,
