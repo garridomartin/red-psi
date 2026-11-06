@@ -24,7 +24,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
         fullName: '',
         email: '',
         phone: '',
-        message: `Hola ${professional.name}, vi tu perfil en Psicologos La Plata y quisiera consultar disponibilidad para iniciar terapia.`,
+        message: `Hola ${professional.name}, vi tu perfil en la web de Psicólogos La Plata y quisiera consultar disponibilidad para iniciar terapia.`,
         preferredModality: 'indistinto',
         professionalId: professional.id,
         website_trap: '', // Honeypot
@@ -41,7 +41,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
 
         const basePhone =
             professional.whatsapp_number || professional.contact_phone.replace(/\D/g, '');
-        const defaultText = `Hola ${professional.name}, vi tu perfil en Psicologos La Plata y quisiera consultar sobre turnos para iniciar terapia (${professional.modality}).`;
+        const defaultText = `Hola ${professional.name}, vi tu perfil en Psicólogos La Plata y quisiera consultar sobre turnos para iniciar terapia.`;
         const encodedText = encodeURIComponent(defaultText);
         const waUrl = `https://wa.me/${basePhone}?text=${encodedText}`;
 
