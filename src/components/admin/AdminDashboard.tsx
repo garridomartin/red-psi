@@ -42,6 +42,7 @@ import {
     Search,
     X,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'list' | 'create-prof' | 'articles' | 'stats'>(
@@ -192,8 +193,14 @@ export const AdminDashboard: React.FC = () => {
     }, []);
 
     const showNotification = (type: 'success' | 'error', text: string) => {
-        setFeedbackMsg({ type, text });
-        setTimeout(() => setFeedbackMsg(null), 4000);
+        if (type === 'success') {
+            toast.success(text);
+        } else {
+            toast.error(text, {
+                description: 'Revisá los datos e intentá de nuevo.',
+                duration: 6000,
+            });
+        }
     };
 
     // Debounce ref para no spamear la API
@@ -244,6 +251,10 @@ export const AdminDashboard: React.FC = () => {
             } catch (err) {
                 console.error('🔴 [buscarMatricula] Error en fetch:', err);
                 setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
+                toast.error('No se pudo verificar la matrícula.', {
+                    description: 'Revisá tu conexión o intentá de nuevo en unos segundos.',
+                    duration: 6000,
+                });
             }
         }, 500); // 500ms debounce
     };
@@ -418,20 +429,31 @@ export const AdminDashboard: React.FC = () => {
 
     // Función auxiliar que hace el guardado real
     const persistProf = async (finalData: any) => {
+        const toastId = toast.loading(
+            editingProfId ? 'Actualizando profesional…' : 'Guardando profesional…',
+        );
         try {
             if (editingProfId) {
                 await updateProfessional(editingProfId, finalData);
-                showNotification('success', `Profesional "${finalData.name}" actualizado.`);
             } else {
                 await addProfessional(finalData);
-                showNotification('success', `Nuevo profesional "${finalData.name}" registrado.`);
             }
             resetProfForm();
             await loadAllData();
             setActiveTab('list');
+            toast.success(
+                editingProfId
+                    ? `Profesional "${finalData.name}" actualizado.`
+                    : `Nuevo profesional "${finalData.name}" registrado.`,
+                { id: toastId },
+            );
         } catch (err: any) {
             console.error('🔴 [AdminDashboard] Error al guardar:', err.message);
-            showNotification('error', `Error al guardar: ${err.message}`);
+            toast.error('No se pudo guardar el profesional.', {
+                id: toastId,
+                description: err?.message ?? 'Revisá los datos e intentá de nuevo.',
+                duration: 8000,
+            });
         }
     };
 
@@ -637,24 +659,6 @@ export const AdminDashboard: React.FC = () => {
 
     return (
         <div className='space-y-8'>
-            {/* Top Banner / Feedback alert */}
-            {feedbackMsg && (
-                <div
-                    className={`p-4 rounded-2xl flex items-center gap-3 animate-in fade-in ${
-                        feedbackMsg.type === 'success'
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200'
-                            : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200'
-                    }`}
-                >
-                    {feedbackMsg.type === 'success' ? (
-                        <CheckCircle2 className='w-5 h-5 shrink-0' />
-                    ) : (
-                        <AlertCircle className='w-5 h-5 shrink-0' />
-                    )}
-                    <span className='text-xs font-semibold'>{feedbackMsg.text}</span>
-                </div>
-            )}
-
             {/* Header Info */}
             <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200 dark:border-neutral-800'>
                 <div>

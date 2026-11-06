@@ -4,6 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { GeoPrompt } from '@/components/common/GeoPrompt';
+import { Toaster } from '@/components/ui/Toaster';
 
 export const metadata: Metadata = {
     metadataBase: new URL('https://www.redpsicologos.com.ar'),
@@ -86,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <Navbar />
                         <div className='pt-20'>
                             <main className='flex-1'>{children}</main>
+                            <Toaster />
                         </div>
                         <Footer />
                         <GeoPrompt />
