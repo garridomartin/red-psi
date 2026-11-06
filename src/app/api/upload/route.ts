@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import sharp from 'sharp';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSession } from '@/lib/auth';
 
 export const runtime = 'nodejs'; // sharp no funciona en edge
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,10 @@ function getAdmin() {
 }
 
 export async function POST(req: NextRequest) {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
     try {
         const formData = await req.formData();
         const file = formData.get('file');
