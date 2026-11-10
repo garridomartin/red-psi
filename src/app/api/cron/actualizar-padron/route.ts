@@ -9,6 +9,11 @@ interface MatriculaRecord {
     nombre: string;
 }
 
+// Umbrales de integridad — ajustá según el padrón real
+const MIN_HTML_BYTES = 100_000; // HTML sospechosamente chico = abortar
+const MIN_RECORDS = 500; // menos registros que esto = abortar
+const HTML_MARKER = '<table'; // marcador esperado del padrón
+
 function parsePadronHtml(html: string): MatriculaRecord[] {
     const records: MatriculaRecord[] = [];
     const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
@@ -61,10 +66,8 @@ function parsePadronHtml(html: string): MatriculaRecord[] {
 }
 
 export async function GET(request: NextRequest) {
-    // Seguridad para Vercel Cron
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
-
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
         return new Response('Unauthorized', { status: 401 });
     }
@@ -87,48 +90,46 @@ export async function GET(request: NextRequest) {
         const html = await response.text();
         console.log(`[cron/actualizar-padron] HTML recibido: ${html.length} bytes`);
 
+        // --- Validaciones de integridad ANTES de escribir ---
+        if (html.length < MIN_HTML_BYTES) {
+            throw new Error(
+                `HTML demasiado corto (${html.length} bytes < ${MIN_HTML_BYTES}). Se aborta sin escribir.`,
+            );
+        }
+        if (!html.toLowerCase().includes(HTML_MARKER)) {
+            throw new Error(
+                `HTML no contiene el marcador esperado "${HTML_MARKER}". Posible página de error. Se aborta sin escribir.`,
+            );
+        }
+
         const records = parsePadronHtml(html);
         console.log(
             `[cron/actualizar-padron] Registros parseados (Distrito XI): ${records.length}`,
         );
 
-        if (records.length === 0) {
-            console.warn('[cron/actualizar-padron] No se parsearon registros del Distrito XI.');
-            return Response.json({
-                success: false,
-                message: 'No se parsearon registros. Revisar estructura del HTML.',
-                htmlLength: html.length,
-            });
+        if (records.length < MIN_RECORDS) {
+            throw new Error(
+                `Solo ${records.length} registros parseados (< ${MIN_RECORDS}). Se aborta sin escribir para no truncar el padrón.`,
+            );
         }
 
+        // --- Escritura atómica vía RPC ---
         const supabaseAdmin = getSupabaseAdmin();
-        const BATCH_SIZE = 1000;
-        let inserted = 0;
+        const { data, error } = await supabaseAdmin.rpc('replace_matriculas', {
+            payload: records,
+        });
 
-        for (let i = 0; i < records.length; i += BATCH_SIZE) {
-            const batch = records.slice(i, i + BATCH_SIZE);
-            const { error } = await supabaseAdmin.from('matriculas').upsert(
-                batch.map((r) => ({
-                    matricula: r.matricula,
-                    nombre: r.nombre,
-                })),
-                { onConflict: 'matricula', ignoreDuplicates: false },
-            );
-
-            if (error) {
-                throw new Error(`Error en upsert lote ${i / BATCH_SIZE}: ${error.message}`);
-            }
-
-            inserted += batch.length;
+        if (error) {
+            throw new Error(`Error en replace_matriculas: ${error.message}`);
         }
 
         console.log(
-            `[cron/actualizar-padron] Completado. ${inserted} registros guardados en Supabase.`,
+            `[cron/actualizar-padron] Completado. ${data} registros guardados atómicamente.`,
         );
         return Response.json({
             success: true,
             totalParsed: records.length,
-            totalUpserted: inserted,
+            totalUpserted: data,
         });
     } catch (error: any) {
         console.error('[cron/actualizar-padron] Error:', error.message);

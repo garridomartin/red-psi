@@ -209,6 +209,7 @@ create index if not exists idx_matriculas_matricula on public.matriculas (matric
 alter table public.matriculas enable row level security;
 
 -- Cualquiera puede leer el padrón (solo contiene matrícula + nombre público)
+drop policy if exists "matriculas_select_public" on public.matriculas;
 create policy "matriculas_select_public"
   on public.matriculas
   for select
@@ -245,3 +246,37 @@ create trigger trg_professionals_updated_at
   before update on public.professionals
   for each row
   execute function public.handle_updated_at();
+
+-- ==========================================
+-- RPC: reemplazo atómico del padrón de matrículas
+-- Usada por el cron /api/cron/actualizar-padron (service_role)
+-- ==========================================
+create or replace function public.replace_matriculas(payload jsonb)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+declare
+  inserted_count integer;
+begin
+  if payload is null or jsonb_array_length(payload) = 0 then
+    raise exception 'Payload vacio: se aborta el reemplazo para no borrar el padron.';
+  end if;
+
+  delete from public.matriculas;
+
+  insert into public.matriculas (matricula, nombre)
+  select (elem->>'matricula')::text, (elem->>'nombre')::text
+  from jsonb_array_elements(payload) as elem
+  on conflict (matricula) do update
+    set nombre = excluded.nombre,
+        updated_at = now();
+
+  get diagnostics inserted_count = row_count;
+  return inserted_count;
+end;
+$fn$;
+
+revoke all on function public.replace_matriculas(jsonb) from public, anon, authenticated;
+grant execute on function public.replace_matriculas(jsonb) to service_role;

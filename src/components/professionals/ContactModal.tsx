@@ -142,7 +142,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                         <MessageCircle className='w-4 h-4' />
                         <span>WhatsApp directo</span>
                     </button>
-                    <button
+                    {/*       <button
                         onClick={() => setActiveTab('email')}
                         className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${
                             activeTab === 'email'
@@ -152,7 +152,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                     >
                         <Mail className='w-4 h-4' />
                         <span>Formulario Email</span>
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Content */}
