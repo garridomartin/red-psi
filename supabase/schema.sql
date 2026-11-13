@@ -267,19 +267,23 @@ begin
     raise exception 'Payload vacio: se aborta el reemplazo para no borrar el padron.';
   end if;
 
-  delete from public.matriculas;
+  truncate table public.matriculas;
 
   insert into public.matriculas (matricula, nombre)
   select (elem->>'matricula')::text, (elem->>'nombre')::text
   from jsonb_array_elements(payload) as elem
+  where (elem->>'matricula') is not null
+    and (elem->>'nombre') is not null
   on conflict (matricula) do update
     set nombre = excluded.nombre,
         updated_at = now();
 
   get diagnostics inserted_count = row_count;
+
+  if inserted_count = 0 then
+    raise exception 'Insert sin filas: rollback para no dejar el padron vacio.';
+  end if;
+
   return inserted_count;
 end;
 $fn$;
-
-revoke all on function public.replace_matriculas(jsonb) from public, anon, authenticated;
-grant execute on function public.replace_matriculas(jsonb) to service_role;

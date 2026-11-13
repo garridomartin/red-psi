@@ -6,6 +6,15 @@ export type UserRole = 'user' | 'admin';
 
 export type ClientAge = 'ninos' | 'adolescentes' | 'jovenes' | 'adultos' | 'adultos-mayores';
 
+
+export const CLIENT_AGE_OPTIONS = [
+    { id: 'ninos', label: 'Niños' },
+    { id: 'adolescentes', label: 'Adolescentes' },
+    { id: 'jovenes', label: 'Jóvenes' },
+    { id: 'adultos', label: 'Adultos' },
+    { id: 'adultos-mayores', label: 'Adultos Mayores' },
+  ] as const;
+
 export interface User {
     id: string;
     email: string;
@@ -130,3 +139,29 @@ export interface UserLocation {
     accuracy?: number;
     addressName?: string;
 }
+
+
+export type ArticleFormData = Pick<
+  Article,
+  'title' | 'cover_url' | 'excerpt' | 'content'
+>;
+
+export const EMPTY_ARTICLE_FORM: ArticleFormData = {
+    title: '',
+    cover_url: '',
+    excerpt: '',
+    content: '',
+  };
+
+
+  export interface AdminStats {
+    totalViews: number;
+    totalContacts: number;
+    totalFavorites: number;
+  }
+  
+  export const EMPTY_STATS: AdminStats = {
+    totalViews: 0,
+    totalContacts: 0,
+    totalFavorites: 0,
+  };
