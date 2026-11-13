@@ -1,21 +1,21 @@
 'use client';
 
-import { ArticleFormData } from '@/types';
+import { ArticleFormData, ArticleFormFields } from '@/types';
 
-interface ArticleFormProps {
-    formData: ArticleFormData;
-    setFormData: React.Dispatch<React.SetStateAction<ArticleFormData>>;
+interface ArticleFormProps<T extends ArticleFormFields> {
+    formData: T;
+    setFormData: React.Dispatch<React.SetStateAction<T>>;
     onSubmit: (e: React.FormEvent) => void | Promise<void>;
     isSubmitting?: boolean;
 }
 
-export default function ArticleForm({
+export default function ArticleForm<T extends ArticleFormFields>({
     formData,
     setFormData,
     onSubmit,
     isSubmitting = false,
-}: ArticleFormProps) {
-    const patch = (partial: Partial<ArticleFormData>) =>
+}: ArticleFormProps<T>) {
+    const patch = (partial: Partial<ArticleFormFields>) =>
         setFormData((prev) => ({ ...prev, ...partial }));
 
     return (

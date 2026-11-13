@@ -6,14 +6,13 @@ export type UserRole = 'user' | 'admin';
 
 export type ClientAge = 'ninos' | 'adolescentes' | 'jovenes' | 'adultos' | 'adultos-mayores';
 
-
 export const CLIENT_AGE_OPTIONS = [
     { id: 'ninos', label: 'Niños' },
     { id: 'adolescentes', label: 'Adolescentes' },
     { id: 'jovenes', label: 'Jóvenes' },
     { id: 'adultos', label: 'Adultos' },
     { id: 'adultos-mayores', label: 'Adultos Mayores' },
-  ] as const;
+] as const;
 
 export interface User {
     id: string;
@@ -140,28 +139,37 @@ export interface UserLocation {
     addressName?: string;
 }
 
+export type ArticleFormData = Pick<Article, 'title' | 'cover_url' | 'excerpt' | 'content'>;
 
-export type ArticleFormData = Pick<
-  Article,
-  'title' | 'cover_url' | 'excerpt' | 'content'
->;
+export type ArticleFormState = ArticleFormFields & Record<string, unknown>;
 
-export const EMPTY_ARTICLE_FORM: ArticleFormData = {
+export type ArticleFormFields = Pick<Article, 'title' | 'cover_url' | 'excerpt' | 'content'>;
+
+export const EMPTY_ARTICLE_FORM: ArticleFormFields = {
     title: '',
     cover_url: '',
     excerpt: '',
     content: '',
-  };
+};
 
-
-  export interface AdminStats {
+export interface AdminStats {
     totalViews: number;
     totalContacts: number;
     totalFavorites: number;
-  }
-  
-  export const EMPTY_STATS: AdminStats = {
+}
+
+export const EMPTY_STATS: AdminStats = {
     totalViews: 0,
     totalContacts: 0,
     totalFavorites: 0,
-  };
+};
+
+export interface GeocodeCandidate {
+    label: string;
+    lat: number;
+    lng: number;
+    localidad: string | null;
+    localidadCensal: string | null;
+    departamento: string | null;
+    provincia: string | null;
+}
