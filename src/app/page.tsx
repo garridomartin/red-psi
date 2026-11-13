@@ -89,18 +89,19 @@ export default function HomePage() {
                         <div className='flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4'>
                             <Link
                                 href='/profesionales'
-                                className='w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-primary-400 hover:bg-primary-300 text-neutral-950 font-bold text-sm shadow-card hover:shadow-hover hover:scale-[1.02] active:scale-[0.98] transition-all'
+                                // CAMBIOS: rounded-full, anillo de foco, borde interior blanco y padding más generoso
+                                className='group w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full bg-primary-400 hover:bg-primary-300 text-neutral-950 font-black text-base shadow-lg ring-2 ring-transparent hover:ring-primary-400 ring-offset-2 transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-white/50'
                             >
-                                <Compass className='w-4 h-4' />
+                                <Compass className='w-5 h-5 text-neutral-900' />
                                 <span>Explorar Profesionales</span>
-                                <ArrowRight className='w-4 h-4' />
+                                <ArrowRight className='w-5 h-5 text-neutral-900 transition-transform group-hover:translate-x-1.5' />
                             </Link>
 
                             <a
                                 href='https://instagram.com/psicologolaplata'
                                 target='_blank'
                                 rel='noopener noreferrer'
-                                className='w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-neutral-850 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100 font-bold text-sm shadow-sm transition-all'
+                                className='w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-white dark:bg-neutral-850 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100 font-bold text-sm shadow-sm transition-all'
                             >
                                 <Instagram className='w-4 h-4 text-pink-500' />
                                 <span className='dark:text-black'>Nuestro Instagram</span>
