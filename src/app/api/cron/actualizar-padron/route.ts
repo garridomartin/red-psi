@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
                 Accept: 'text/html,application/xhtml+xml',
             },
             cache: 'no-store',
+            signal: AbortSignal.timeout(45_000),
         });
 
         if (!response.ok) {

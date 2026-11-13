@@ -267,7 +267,7 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        {/* Mock Instagram Feed Cards */}
+                        {/* Instagram Feed Cards */}
                         <div className='grid grid-cols-2 gap-3.5 sm:gap-4'>
                             <ExampleFeedCard
                                 exampleNumber={1}
@@ -285,61 +285,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-
-            {/* WHY CHOOSE US */}
-            {/*    <section className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-                <div className='text-center max-w-2xl mx-auto mb-14 space-y-3'>
-                    <span className='text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400'>
-                        Nuestros pilares
-                    </span>
-                    <h2 className='text-3xl font-extrabold font-display text-neutral-900 dark:text-neutral-50 tracking-tight'>
-                        ¿Por qué elegir Psicólogos La Plata?
-                    </h2>
-                </div>
-
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
-                    <div className='bg-white dark:bg-neutral-900 rounded-3xl p-7 border border-neutral-200/80 dark:border-neutral-800 space-y-3'>
-                        <div className='w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center'>
-                            <ShieldCheck className='w-5 h-5' />
-                        </div>
-                        <h3 className='font-bold text-base text-neutral-900 dark:text-neutral-100'>
-                            Validación y Matrícula Activa
-                        </h3>
-                        <p className='text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed'>
-                            Verificamos que cada psicólogo cuente con título universitario
-                            homologado y matrícula profesional provincial o nacional vigente antes
-                            de incorporarlo.
-                        </p>
-                    </div>
-
-                    <div className='bg-white dark:bg-neutral-900 rounded-3xl p-7 border border-neutral-200/80 dark:border-neutral-800 space-y-3'>
-                        <div className='w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center'>
-                            <MapPin className='w-5 h-5' />
-                        </div>
-                        <h3 className='font-bold text-base text-neutral-900 dark:text-neutral-100'>
-                            Geolocalización Real
-                        </h3>
-                        <p className='text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed'>
-                            Si preferís la modalidad presencial, ordenamos los consultorios según la
-                            distancia a tu domicilio para que no pierdas horas de viaje en la
-                            ciudad.
-                        </p>
-                    </div>
-
-                    <div className='bg-white dark:bg-neutral-900 rounded-3xl p-7 border border-neutral-200/80 dark:border-neutral-800 space-y-3'>
-                        <div className='w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center'>
-                            <Heart className='w-5 h-5' />
-                        </div>
-                        <h3 className='font-bold text-base text-neutral-900 dark:text-neutral-100'>
-                            Encuadre a medida, sin intermediarios
-                        </h3>
-                        <p className='text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed'>
-                            No retenemos pagos ni forzamos suscripciones mensuales. Hablás
-                            directamente con el terapeuta y definen juntos el encuadre de trabajo.
-                        </p>
-                    </div>
-                </div>
-            </section> */}
             <ExamplePickerModal
                 open={isAdmin && pickerSlot !== null}
                 slot={pickerSlot ?? 1}

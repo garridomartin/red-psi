@@ -31,12 +31,7 @@ import {
     Trash2,
     Edit3,
     CheckCircle2,
-    AlertCircle,
-    Instagram,
     Phone,
-    Mail,
-    MapPin,
-    TrendingUp,
     Tag,
     Search,
     X,
@@ -44,6 +39,7 @@ import {
     Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { LicenseCheck } from './LicenseCheck';
 
 export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'list' | 'create-prof' | 'articles' | 'stats'>(
@@ -58,11 +54,6 @@ export const AdminDashboard: React.FC = () => {
         totalContacts: 0,
         totalFavorites: 0,
     });
-    const [feedbackMsg, setFeedbackMsg] = useState<{
-        type: 'success' | 'error';
-        text: string;
-    } | null>(null);
-
     const [showHiredAtModal, setShowHiredAtModal] = useState(false);
     const [pendingHiredAtAction, setPendingHiredAtAction] = useState<{
         formData: typeof profFormData & { slug: string; hired_at?: string };
@@ -97,6 +88,13 @@ export const AdminDashboard: React.FC = () => {
         localidad_censal: string | null;
         provincia: string;
     } | null>(null);
+
+    // Estado para validación de matrícula
+    const [matriculaStatus, setMatriculaStatus] = useState<{
+        checking: boolean;
+        found: boolean | null;
+        nombreSugerido: string | null;
+    }>({ checking: false, found: null, nombreSugerido: null });
 
     // Form State for Professional
     const [editingProfId, setEditingProfId] = useState<string | null>(null);
@@ -167,13 +165,6 @@ export const AdminDashboard: React.FC = () => {
         is_published: true,
     });
 
-    // Estado para validación de matrícula
-    const [matriculaStatus, setMatriculaStatus] = useState<{
-        checking: boolean;
-        found: boolean | null;
-        nombreSugerido: string | null;
-    }>({ checking: false, found: null, nombreSugerido: null });
-
     const loadAllData = async () => {
         const [profs, arts] = await Promise.all([
             getProfessionalsForAdmin(), // ← dashboard: ve todos (incluidos inactivos)
@@ -214,59 +205,6 @@ export const AdminDashboard: React.FC = () => {
 
     // Debounce ref para no spamear la API
     const matriculaDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
-
-    const buscarMatricula = (matricula: string) => {
-        // Limpiar timeout anterior
-
-        if (matriculaDebounceRef.current) {
-            clearTimeout(matriculaDebounceRef.current);
-        }
-
-        const limpia = matricula.replace(/\D/g, '');
-
-        if (limpia.length < 3) {
-            setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
-            return;
-        }
-
-        setMatriculaStatus({ checking: true, found: null, nombreSugerido: null });
-
-        matriculaDebounceRef.current = setTimeout(async () => {
-            try {
-                const res = await fetch(
-                    `/api/matriculas/buscar?matricula=${encodeURIComponent(limpia)}`,
-                );
-
-                const data = await res.json();
-
-                if (data.found) {
-                    setMatriculaStatus({
-                        checking: false,
-                        found: true,
-                        nombreSugerido: data.nombre,
-                    });
-                    // Autocompletar el nombre solo si está vacío o si el usuario no lo tocó
-                    setProfFormData((prev) => ({
-                        ...prev,
-                        name: prev.name.trim() === '' ? data.nombre : prev.name,
-                    }));
-                } else {
-                    setMatriculaStatus({
-                        checking: false,
-                        found: false,
-                        nombreSugerido: null,
-                    });
-                }
-            } catch (err) {
-                console.error('🔴 [buscarMatricula] Error en fetch:', err);
-                setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
-                toast.error('No se pudo verificar la matrícula.', {
-                    description: 'Revisá tu conexión o intentá de nuevo en unos segundos.',
-                    duration: 6000,
-                });
-            }
-        }, 500); // 500ms debounce
-    };
 
     const resetProfForm = () => {
         setEditingProfId(null);
@@ -1101,60 +1039,12 @@ export const AdminDashboard: React.FC = () => {
                             <label className='block text-xs font-bold text-neutral-800 dark:text-neutral-200 mb-1'>
                                 Matrícula *
                             </label>
-                            <div className='relative'>
-                                <input
-                                    type='text'
-                                    required
-                                    value={profFormData.license}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setProfFormData({ ...profFormData, license: value });
-                                        buscarMatricula(value);
-                                    }}
-                                    placeholder='Ej: 48912'
-                                    className='w-full px-3.5 py-2.5 pr-10 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
-                                />
-                                {profFormData.license && (
-                                    <button
-                                        type='button'
-                                        onClick={() => {
-                                            // Cancelar debounce pendiente
-                                            if (matriculaDebounceRef.current) {
-                                                clearTimeout(matriculaDebounceRef.current);
-                                                matriculaDebounceRef.current = null;
-                                            }
-                                            // Limpiar matrícula y nombre
-                                            setProfFormData({
-                                                ...profFormData,
-                                                license: '',
-                                                name: '',
-                                            });
-                                            // Limpiar estado de validación
-                                            setMatriculaStatus({
-                                                checking: false,
-                                                found: null,
-                                                nombreSugerido: null,
-                                            });
-                                        }}
-                                        className='absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors'
-                                        title='Limpiar matrícula y nombre'
-                                    >
-                                        <svg
-                                            className='w-3.5 h-3.5'
-                                            fill='none'
-                                            stroke='currentColor'
-                                            viewBox='0 0 24 24'
-                                        >
-                                            <path
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                strokeWidth={2.5}
-                                                d='M6 18L18 6M6 6l12 12'
-                                            />
-                                        </svg>
-                                    </button>
-                                )}
-                            </div>
+                            <LicenseCheck
+                                setProfFormData={setProfFormData}
+                                profFormData={profFormData}
+                                matriculaDebounceRef={matriculaDebounceRef}
+                                setMatriculaStatus={setMatriculaStatus}
+                            />
 
                             {/* Feedback de validación de matrícula */}
                             {matriculaStatus.checking && (
