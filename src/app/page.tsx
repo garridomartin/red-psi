@@ -6,23 +6,55 @@ import { getProfessionals, updateProfessionalExample } from '@/lib/data/dataStor
 import { Professional } from '@/types';
 import { ProfessionalCard } from '@/components/professionals/ProfessionalCard';
 import { Compass, Sparkles, Instagram, ArrowRight, ChevronRight, MapPin } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import ExampleFeedCard from '@/components/admin/ExampleFeedCard';
+import ExamplePickerModal from '@/components/admin/ExamplePickerModal';
 
 export default function HomePage() {
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin';
+
     const [featuredProfessionals, setFeaturedProfessionals] = useState<Professional[]>([]);
-    const [exampleProfessionals, setExampleProfessionals] = useState<Professional[]>([]);
+    const [allProfessionals, setAllProfessionals] = useState<Professional[]>([]);
+
+    const [pickerSlot, setPickerSlot] = useState<1 | 2 | null>(null);
+    const [saving, setSaving] = useState(false);
+
+    const load = async () => {
+        const list = await getProfessionals();
+        setAllProfessionals(list);
+        setFeaturedProfessionals(list.filter((p) => p.is_featured && p.is_active));
+    };
 
     useEffect(() => {
-        const load = async () => {
-            const list = await getProfessionals();
-            setFeaturedProfessionals(list.filter((p) => p.is_featured && p.is_active));
-            setExampleProfessionals(list.filter((p) => p.example));
-        };
-
         load();
     }, []);
 
-    const exampleOne = exampleProfessionals.find((p) => p.example === 1);
-    const exampleTwo = exampleProfessionals.find((p) => p.example === 2);
+    const exampleOne = allProfessionals.find((p) => p.example === 1);
+    const exampleTwo = allProfessionals.find((p) => p.example === 2);
+
+    const handleOpenPicker = (val: 1 | 2) => setPickerSlot(val);
+    const handleClosePicker = () => setPickerSlot(null);
+
+    const handleSelect = async (prof: Professional, val: 1 | 2) => {
+        setSaving(true);
+        try {
+            // Si el slot ya tenía alguien distinto, lo limpiamos primero
+            const current = allProfessionals.find((p) => p.example === val);
+            if (current && current.id !== prof.id) {
+                await updateProfessionalExample(current.id, null);
+            }
+            await updateProfessionalExample(prof.id, val);
+            await load(); // recarga tras cada cambio
+            setPickerSlot(null);
+        } catch (err) {
+            console.error(err);
+            // showNotification('error', ...) si querés
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <div className='space-y-24 pb-20 overflow-hidden'>
             {/* HERO SECTION */}
@@ -236,51 +268,18 @@ export default function HomePage() {
 
                         {/* Mock Instagram Feed Cards */}
                         <div className='grid grid-cols-2 gap-3.5 sm:gap-4'>
-                            <div className='rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/15 space-y-3'>
-                                <div className='flex items-center gap-2'>
-                                    <div className='w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-pink-500 p-0.5'>
-                                        <div className='w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-[10px] font-bold'>
-                                            Ψ
-                                        </div>
-                                    </div>
-                                    <span className='text-xs font-bold'>psicologolaplata</span>
-                                </div>
-                                <div className='aspect-square rounded-xl bg-neutral-800/80 overflow-hidden relative'>
-                                    <img
-                                        src={exampleOne?.photo_url}
-                                        alt='Tarjeta Instagram'
-                                        className='w-full h-full object-cover'
-                                    />
-                                    <div className='absolute inset-0 bg-neutral-950/40 p-2.5 flex flex-col justify-end'>
-                                        <p className='text-[11px] font-bold leading-tight'>
-                                            {exampleOne?.name}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className='rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/15 space-y-3 '>
-                                <div className='flex items-center gap-2'>
-                                    <div className='w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-pink-500 p-0.5'>
-                                        <div className='w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-[10px] font-bold'>
-                                            Ψ
-                                        </div>
-                                    </div>
-                                    <span className='text-xs font-bold'>psicologolaplata</span>
-                                </div>
-                                <div className='aspect-square rounded-xl bg-neutral-800/80 overflow-hidden relative'>
-                                    <img
-                                        src={exampleTwo?.photo_url}
-                                        alt='Tarjeta Instagram'
-                                        className='w-full h-full object-cover'
-                                    />
-                                    <div className='absolute inset-0 bg-neutral-950/40 p-2.5 flex flex-col justify-end'>
-                                        <p className='text-[11px] font-bold leading-tight'>
-                                            {exampleTwo?.name}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            <ExampleFeedCard
+                                exampleNumber={1}
+                                professional={exampleOne}
+                                isAdmin={isAdmin}
+                                onOpenPicker={handleOpenPicker}
+                            />
+                            <ExampleFeedCard
+                                exampleNumber={2}
+                                professional={exampleTwo}
+                                isAdmin={isAdmin}
+                                onOpenPicker={handleOpenPicker}
+                            />
                         </div>
                     </div>
                 </div>
@@ -340,6 +339,14 @@ export default function HomePage() {
                     </div>
                 </div>
             </section> */}
+            <ExamplePickerModal
+                open={isAdmin && pickerSlot !== null}
+                slot={pickerSlot ?? 1}
+                professionals={allProfessionals}
+                saving={saving}
+                onClose={handleClosePicker}
+                onSelect={handleSelect}
+            />
         </div>
     );
 }

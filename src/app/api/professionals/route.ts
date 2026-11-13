@@ -28,7 +28,8 @@ const ALLOWED = [
     'approach',
     'is_active',
     'is_featured',
-    'example',      // <-- AGREGAR
+    'example',
+    'hired_at',
     'client_age',
     'whatsapp_number',
 ];
@@ -55,7 +56,17 @@ export async function POST(req: NextRequest) {
         if (!insert.slug || typeof insert.slug !== 'string') {
             return NextResponse.json({ error: 'Falta el slug' }, { status: 400 });
         }
-
+        if (insert.hired_at !== undefined) {
+            if (insert.hired_at === null || insert.hired_at === '') {
+                delete insert.hired_at; // no enviado → default de Postgres
+            } else {
+                const d = new Date(insert.hired_at as string);
+                if (Number.isNaN(d.getTime())) {
+                    return NextResponse.json({ error: 'hired_at inválido' }, { status: 400 });
+                }
+                insert.hired_at = d.toISOString().slice(0, 10);
+            }
+        }
         const supabaseAdmin = getSupabaseAdmin();
         const { data, error } = await supabaseAdmin
             .from('professionals')

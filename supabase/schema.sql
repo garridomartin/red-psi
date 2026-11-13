@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
     contacts_count INTEGER NOT NULL DEFAULT 0,
     whatsapp_number TEXT,
     example SMALLINT CHECK (example IN (1, 2) OR example IS NULL),
+    hired_at DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
@@ -130,6 +131,8 @@ CREATE INDEX IF NOT EXISTS idx_professionals_visible ON public.professionals (id
 CREATE INDEX IF NOT EXISTS idx_articles_visible ON public.articles (id) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_professionals_example ON public.professionals(example);
 CREATE INDEX IF NOT EXISTS idx_professionals_client_age ON public.professionals USING GIN (client_age);
+CREATE INDEX IF NOT EXISTS idx_professionals_hired_at
+    ON public.professionals(hired_at) WHERE deleted_at IS NULL;
 
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES

@@ -16,7 +16,6 @@ import {
     updateArticle,
     AppStats,
     getProfessionalsForAdmin,
-    updateProfessionalExample,
 } from '@/lib/data/dataStore';
 import { SPECIALTIES_CATALOG, INSURANCES_CATALOG } from '@/lib/data/mockData';
 import { ImageUploader } from './ImageUploader';
@@ -51,7 +50,7 @@ export const AdminDashboard: React.FC = () => {
         'list',
     );
     const [professionals, setProfessionals] = useState<Professional[]>([]);
-
+    const [originalProf, setOriginalProf] = useState<Professional | null>(null);
     const [articles, setArticles] = useState<Article[]>([]);
     const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
     const [stats, setStats] = useState<AppStats>({
@@ -62,6 +61,14 @@ export const AdminDashboard: React.FC = () => {
     const [feedbackMsg, setFeedbackMsg] = useState<{
         type: 'success' | 'error';
         text: string;
+    } | null>(null);
+
+    const [showHiredAtModal, setShowHiredAtModal] = useState(false);
+    const [pendingHiredAtAction, setPendingHiredAtAction] = useState<{
+        formData: typeof profFormData & { slug: string; hired_at?: string };
+        slug: string;
+        hiredAt: string | null;
+        addressChanged: boolean;
     } | null>(null);
     // Búsqueda de profesionales
     const [searchQuery, setSearchQuery] = useState('');
@@ -116,8 +123,8 @@ export const AdminDashboard: React.FC = () => {
         approach: string;
         is_active: boolean;
         client_age: ClientAge[];
-        example: 1 | 2 | null;
         is_featured: boolean;
+        hired_at: string;
     }>({
         name: '',
         title: '',
@@ -140,9 +147,9 @@ export const AdminDashboard: React.FC = () => {
         session_price: '$40.000 / sesión',
         approach: '',
         client_age: [],
-        example: null,
         is_active: true,
         is_featured: false,
+        hired_at: '',
     });
 
     // Form State for Article
@@ -285,12 +292,14 @@ export const AdminDashboard: React.FC = () => {
             session_price: 'consultar',
             approach: 'Integrativo y Basado en Evidencia',
             client_age: [],
-            example: null,
             is_active: true,
             is_featured: false,
+            hired_at: '',
         });
         setMatriculaStatus({ checking: false, found: null, nombreSugerido: null });
-
+        setOriginalProf(null);
+        setPendingHiredAtAction(null);
+        setShowHiredAtModal(false);
         // Cancelar debounce pendiente
         if (matriculaDebounceRef.current) {
             clearTimeout(matriculaDebounceRef.current);
@@ -322,6 +331,7 @@ export const AdminDashboard: React.FC = () => {
             clearTimeout(matriculaDebounceRef.current);
             matriculaDebounceRef.current = null;
         }
+        setOriginalProf(prof);
         setEditingProfId(prof.id);
         setProfFormData({
             name: prof.name,
@@ -345,9 +355,9 @@ export const AdminDashboard: React.FC = () => {
             session_price: prof.session_price || '',
             approach: prof.approach || '',
             client_age: prof.client_age || [],
-            example: prof.example || null,
             is_active: prof.is_active,
             is_featured: prof.is_featured,
+            hired_at: prof.hired_at ?? '',
         });
         setActiveTab('create-prof');
     };
@@ -355,7 +365,7 @@ export const AdminDashboard: React.FC = () => {
     const handleSaveProf = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // 1. Generar slug
+        // 1. Slug
         const generatedSlug = profFormData.name
             .toLowerCase()
             .normalize('NFD')
@@ -363,7 +373,7 @@ export const AdminDashboard: React.FC = () => {
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)+/g, '');
 
-        // 2. Validar antes de geocodificar (para no geocodificar si el form está mal)
+        // 2. Validación
         const validated = professionalSchema.safeParse(profFormData);
         if (!validated.success) {
             const firstError =
@@ -372,15 +382,66 @@ export const AdminDashboard: React.FC = () => {
             return;
         }
 
-        // 3. Geocodificar la dirección (si tiene sentido)
-        //    Combinamos address (calle) + neighborhood (ciudad) en una sola línea:
-        //    "Calle 55 y Calle 2, La Plata"
+        // 3. ¿Es edición? ¿Cambió la dirección?
+        const isEdit = Boolean(editingProfId && originalProf);
+        const addressChanged = isEdit
+            ? originalProf!.address !== profFormData.address ||
+              (originalProf!.neighborhood ?? '') !== (profFormData.neighborhood ?? '')
+            : true;
+
+        // 4. Si es edición, decidir hired_at ANTES del geocode.
+        //    Armamos el payload base (sin lat/lng todavía).
+        const baseData = {
+            ...profFormData,
+            slug: generatedSlug,
+        };
+
+        // Helper para continuar con el flujo una vez decidido hired_at.
+        const continueWithHiredAt = async (hiredAt: string | null) => {
+            const dataWithHiredAt = hiredAt ? { ...baseData, hired_at: hiredAt } : { ...baseData }; // si es null, NO mandamos hired_at (el backend no lo toca)
+
+            await runGeocodeAndPersist(dataWithHiredAt, addressChanged);
+        };
+
+        // Si NO es edición, hired_at va por default (CURRENT_DATE en Postgres) → no preguntamos.
+        if (!isEdit) {
+            await continueWithHiredAt(null);
+            return;
+        }
+
+        // Si es edición, abrimos modal de hired_at (la decisión se toma acá).
+        setPendingHiredAtAction({
+            formData: baseData,
+            slug: generatedSlug,
+            hiredAt: null,
+            addressChanged, // <-- guardar
+        });
+        setShowHiredAtModal(true);
+    };
+
+    const runGeocodeAndPersist = async (
+        data: typeof profFormData & { slug: string; hired_at?: string },
+        addressChanged: boolean,
+    ) => {
+        // Si es edición y la dirección NO cambió → saltamos geocode por completo.
+        if (!addressChanged) {
+            await persistProf({
+                ...data,
+                lat: profFormData.lat,
+                lng: profFormData.lng,
+            });
+            return;
+        }
+
+        // Geocode normal (solo si cambió la dirección o es alta nueva)
         let candidates: typeof geocodeCandidates = [];
         let query: typeof geocodeQuery = null;
+
         const fullAddress = [profFormData.address, profFormData.neighborhood]
             .map((s) => s?.trim())
             .filter(Boolean)
             .join(', ');
+
         if (fullAddress.length >= 5) {
             try {
                 const geoRes = await fetch('/api/geocode', {
@@ -399,32 +460,27 @@ export const AdminDashboard: React.FC = () => {
         }
         setGeocodeQuery(query);
 
-        // 4. Preparar los datos finales (con las coords actuales por ahora)
         const buildFinalData = (lat: number, lng: number) => ({
-            ...profFormData,
+            ...data,
             lat,
             lng,
-            slug: generatedSlug,
         });
 
-        // 5. Si no hay candidatos, guardar con las coords actuales
         if (candidates.length === 0) {
             await persistProf(buildFinalData(profFormData.lat, profFormData.lng));
             return;
         }
-
-        // 6. Si hay 1 solo candidato, usarlo directo
         if (candidates.length === 1) {
             await persistProf(buildFinalData(candidates[0].lat, candidates[0].lng));
             return;
         }
 
-        // 7. Si hay varios, abrir el modal y guardar la acción pendiente
+        // Varios → modal de geocode, arrastrando hired_at
         setGeocodeCandidates(candidates);
         setGeocodePendingAction({
             type: 'save',
-            formData: profFormData,
-            slug: generatedSlug,
+            formData: data, // ya incluye hired_at si corresponde
+            slug: data.slug,
         });
         setShowGeocodeModal(true);
     };
@@ -445,6 +501,7 @@ export const AdminDashboard: React.FC = () => {
         );
 
         try {
+            const wasEditing = Boolean(editingProfId);
             if (editingProfId) {
                 await updateProfessional(editingProfId, finalData);
             } else {
@@ -455,10 +512,9 @@ export const AdminDashboard: React.FC = () => {
             await loadAllData();
             setActiveTab('list');
 
-            // 2. Cerramos el custom y mostramos el éxito
             toast.dismiss(loadingId);
             toast.success(
-                editingProfId
+                wasEditing
                     ? `Profesional "${finalData.name}" actualizado.`
                     : `Nuevo profesional "${finalData.name}" registrado.`,
             );
@@ -708,34 +764,29 @@ export const AdminDashboard: React.FC = () => {
         setSearchFocused(false);
     };
 
-    const handleToggleExample = async (prof: Professional, val: 1 | 2) => {
-        try {
-            // 1. Si el prof ya tiene este valor, lo desmarcamos (null)
-            if (prof.example === val) {
-                await updateProfessionalExample(prof.id, null);
-            } else {
-                // 2. Si otro profesional ya tiene este valor, lo desmarcamos primero
-                const otherProfWithSameVal = professionals.find(
-                    (p) => p.example === val && p.id !== prof.id,
-                );
-
-                if (otherProfWithSameVal) {
-                    await updateProfessionalExample(otherProfWithSameVal.id, null);
-                }
-
-                // 3. Asignamos el nuevo valor
-                await updateProfessionalExample(prof.id, val);
-            }
-
-            // 4. Recargamos los datos en el admin para ver los cambios
-            await loadAllData();
-            showNotification('success', 'Ejemplos actualizados correctamente.');
-        } catch (err: any) {
-            console.error(err);
-            showNotification('error', 'No se pudo actualizar el ejemplo.');
-        }
+    const handleHiredAtKeepCurrent = async () => {
+        if (!pendingHiredAtAction) return;
+        setShowHiredAtModal(false);
+        const action = pendingHiredAtAction;
+        setPendingHiredAtAction(null);
+        // hired_at === null → no se envía, el backend mantiene el actual
+        await runGeocodeAndPersist(action.formData, action.addressChanged);
     };
 
+    const handleHiredAtUseToday = async () => {
+        if (!pendingHiredAtAction) return;
+        setShowHiredAtModal(false);
+        const action = pendingHiredAtAction;
+        setPendingHiredAtAction(null);
+        const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+        await runGeocodeAndPersist({ ...action.formData, hired_at: today }, action.addressChanged);
+    };
+
+    const formatFecha = (iso: string | null | undefined) => {
+        if (!iso) return '—';
+        const [y, m, d] = iso.slice(0, 10).split('-');
+        return `${d}/${m}/${y}`;
+    };
     return (
         <div className='space-y-8'>
             {/* Header Info */}
@@ -888,7 +939,7 @@ export const AdminDashboard: React.FC = () => {
                                         <th className='p-4'>Modalidad</th>
                                         <th className='p-4'>Ubicación</th>
                                         <th className='p-4 text-center'>Destacado</th>
-                                        <th className='p-4 text-center'>Ejemplo</th>
+                                        <th className='p-4 text-center'>Fecha de alta</th>
                                         <th className='p-4 text-center'>Estado</th>
                                         <th className='p-4 text-right'>Acciones</th>
                                     </tr>
@@ -955,31 +1006,9 @@ export const AdminDashboard: React.FC = () => {
                                                     </button>
                                                 </td>
                                                 <td className='p-4 text-center'>
-                                                    <div className='flex items-center justify-center gap-1.5'>
-                                                        {[1, 2].map((val) => {
-                                                            const isActive = p.example === val;
-                                                            return (
-                                                                <button
-                                                                    key={val}
-                                                                    type='button'
-                                                                    onClick={() =>
-                                                                        handleToggleExample(
-                                                                            p,
-                                                                            val as 1 | 2,
-                                                                        )
-                                                                    }
-                                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs border transition-all ${
-                                                                        isActive
-                                                                            ? 'bg-primary-400 border-primary-500 text-neutral-950 shadow-sm'
-                                                                            : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-400 hover:border-neutral-300'
-                                                                    }`}
-                                                                    title={`Marcar como Ejemplo ${val}`}
-                                                                >
-                                                                    {val}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <td className='p-4 text-center text-neutral-600 dark:text-neutral-300'>
+                                                        {formatFecha(p.hired_at)}
+                                                    </td>
                                                 </td>
 
                                                 <td className='p-4 text-center'>
@@ -1791,6 +1820,37 @@ export const AdminDashboard: React.FC = () => {
                                     </span>
                                 ))}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showHiredAtModal && pendingHiredAtAction && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+                    <div className='w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-neutral-900'>
+                        <h2 className='mb-2 text-lg font-bold'>Fecha de alta</h2>
+                        <p className='mb-4 text-sm text-neutral-600 dark:text-neutral-300'>
+                            Fecha de alta actual:{' '}
+                            <strong>{formatFecha(originalProf?.hired_at ?? '')}</strong>
+                            <br />
+                            ¿Querés mantenerla o actualizarla a hoy (
+                            {formatFecha(new Date().toISOString().slice(0, 10))})?
+                        </p>
+                        <div className='flex justify-end gap-2'>
+                            <button
+                                type='button'
+                                onClick={handleHiredAtKeepCurrent}
+                                className='rounded border px-4 py-2 text-sm'
+                            >
+                                Mantener actual
+                            </button>
+                            <button
+                                type='button'
+                                onClick={handleHiredAtUseToday}
+                                className='rounded bg-blue-600 px-4 py-2 text-sm text-white'
+                            >
+                                Usar fecha de hoy
+                            </button>
                         </div>
                     </div>
                 </div>

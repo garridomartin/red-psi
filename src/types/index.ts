@@ -19,6 +19,7 @@ export interface Specialty {
     id: string;
     name: string;
     slug: string;
+    hired_at: string;
     description?: string;
 }
 
@@ -61,6 +62,7 @@ export interface Professional {
     created_at?: string;
     updated_at?: string;
     deleted_at?: string;
+    hired_at: string;
 }
 
 export interface ProfessionalFilters {
