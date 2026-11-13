@@ -12,21 +12,30 @@ import { GoogleOneTap } from '@/components/GoogleOneTap';
 
 export default function FavoritesPage() {
     const { user, favorites, loginWithGoogle } = useAuth();
+    console.log('🚀 ~ file: page.tsx:15 ~ favorites:', favorites);
     const [favoriteProfessionals, setFavoriteProfessionals] = useState<Professional[]>([]);
-   
+    console.log('🚀 ~ file: page.tsx:17 ~ favoriteProfessionals:', favoriteProfessionals);
+
     const [loginError, setLoginError] = useState<string | null>(null);
 
     useEffect(() => {
         const load = async () => {
             const all = await getProfessionals();
-            setFavoriteProfessionals(all.filter((p) => p.is_featured && p.is_active));
+            const isActive = all.filter((p) => p.is_active);
+
+            setFavoriteProfessionals(
+                favorites.flatMap((id) => {
+                    const p = isActive.find((x) => x.id === id);
+                    return p ? [p] : [];
+                }),
+            );
         };
         load();
 
         const onChange = () => load();
         window.addEventListener('red_epsilon_data_changed', onChange);
         return () => window.removeEventListener('red_epsilon_data_changed', onChange);
-    }, []);
+    }, [favorites]);
 
     if (!user) {
         return (

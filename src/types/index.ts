@@ -56,7 +56,7 @@ export interface Professional {
     is_active: boolean;
     is_featured: boolean;
     session_price?: string;
-    approach?: string; // e.g. "Cognitivo-Conductual", "Psicoanalítico"
+    approach?: string;
     client_age?: ClientAge[];
     example: 1 | 2 | null;
     created_at?: string;

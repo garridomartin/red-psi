@@ -69,6 +69,41 @@ export const SPECIALTIES_CATALOG: Specialty[] = [
         description:
             'Espacio seguro y afirmativo para la comunidad LGBTIQ+ y diversidad de género.',
     },
+    {
+        id: '10',
+        name: 'Orientación Vocacional',
+        slug: 'orientacion-vocacional',
+        hired_at: '2024-01-15',
+        description: ' ',
+    },
+    {
+        id: '11',
+        name: 'Psico Oncología',
+        slug: 'psico-oncologia',
+        hired_at: '2024-01-15',
+        description: ' ',
+    },
+    {
+        id: '12',
+        name: 'Psicología Perinata',
+        slug: 'psicologia-perinatal',
+        hired_at: '2024-01-15',
+        description: ' ',
+    },
+    {
+        id: '13',
+        name: 'Autismo',
+        slug: 'autismo',
+        hired_at: '2024-01-15',
+        description: ' ',
+    },
+    {
+        id: '14',
+        name: 'Psicosis',
+        slug: 'psicosis',
+        hired_at: '2024-01-15',
+        description: ' ',
+    },
 ];
 
 export const INSURANCES_CATALOG: Insurance[] = [
