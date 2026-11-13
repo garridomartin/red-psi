@@ -173,3 +173,26 @@ export interface GeocodeCandidate {
     departamento: string | null;
     provincia: string | null;
 }
+
+/** Subset de Professional que el autocompletar necesita mostrar. */
+export type ProfessionalSuggestion = Professional;
+
+/**
+ * `filteredProfessionals` puede ser cualquier subset de Professional,
+ * pero el módulo solo necesita estos campos para renderizar la tabla.
+ */
+export type ProfessionalListItem = Pick<
+    Professional,
+    | 'id'
+    | 'name'
+    | 'photo_url'
+    | 'license'
+    | 'age'
+    | 'specialties'
+    | 'modality'
+    | 'neighborhood'
+    | 'city'
+    | 'is_featured'
+    | 'is_active'
+    | 'hired_at'
+>;

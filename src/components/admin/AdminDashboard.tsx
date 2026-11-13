@@ -17,33 +17,15 @@ import {
     AppStats,
     getProfessionalsForAdmin,
 } from '@/lib/data/dataStore';
-import { SPECIALTIES_CATALOG, INSURANCES_CATALOG } from '@/lib/data/mockData';
-import { ImageUploader } from './ImageUploader';
+
 import { professionalSchema, articleSchema } from '@/lib/validations';
-import {
-    Shield,
-    Plus,
-    Users,
-    FileText,
-    BarChart3,
-    Star,
-    Eye,
-    Trash2,
-    Edit3,
-    CheckCircle2,
-    Phone,
-    Tag,
-    Search,
-    X,
-    Check,
-    Loader2,
-} from 'lucide-react';
+import { Plus, Users, FileText, BarChart3, X, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { LicenseCheck } from './LicenseCheck';
 import ProfesionalForm from './ProfesionalForm/ProfesionalForm';
 import ArticlesManager from './ArticlesManager/ArticlesManager';
 import StatsPanel from './StatsPanel/StatsPanel';
 import GeocodeModal from './GeocodeModal/GeocodeModal';
+import ProfessionalsList from './ProfessionalsList/ProfessionalsList';
 
 export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'list' | 'create-prof' | 'articles' | 'stats'>(
@@ -764,208 +746,26 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* TAB 1: LIST OF PROFESSIONALS */}
-
             {activeTab === 'list' && (
-                <div className='space-y-4'>
-                    {/* Barra de búsqueda con autocompletar */}
-                    <div className='relative'>
-                        <div className='relative'>
-                            <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none' />
-                            <input
-                                type='text'
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                onKeyDown={handleSearchKeyDown}
-                                onFocus={() => setSearchFocused(true)}
-                                onBlur={() => {
-                                    setTimeout(() => setSearchFocused(false), 150);
-                                }}
-                                placeholder='Buscar por nombre o matrícula... (mín. 3 caracteres)'
-                                className='w-full pl-10 pr-10 py-3 text-sm rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-400'
-                            />
-                            {searchQuery && (
-                                <button
-                                    type='button'
-                                    onClick={handleClearSearch}
-                                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                    title='Limpiar búsqueda'
-                                >
-                                    <X className='w-4 h-4' />
-                                </button>
-                            )}
-                        </div>
-
-                        {searchFocused && suggestions.length > 0 && (
-                            <div className='absolute z-20 left-0 right-0 mt-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden'>
-                                {suggestions.map((p) => (
-                                    <button
-                                        key={p.id}
-                                        type='button'
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        onClick={() => handleSelectSuggestion(p)}
-                                        className='w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors'
-                                    >
-                                        <img
-                                            src={p.photo_url}
-                                            alt={p.name}
-                                            className='w-8 h-8 rounded-lg object-cover shrink-0'
-                                        />
-                                        <div className='min-w-0 flex-1'>
-                                            <p className='text-xs font-bold text-neutral-900 dark:text-neutral-100 truncate'>
-                                                {p.name}
-                                            </p>
-                                            <p className='text-[11px] text-neutral-500 truncate'>
-                                                {p.license || 'Sin matrícula'} •{' '}
-                                                {p.neighborhood || p.city}
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Indicador de filtro activo */}
-                    {appliedFilter && (
-                        <div className='flex items-center justify-between text-xs text-neutral-500'>
-                            <span>
-                                Filtrando por:{' '}
-                                <strong className='text-neutral-900 dark:text-neutral-100'>
-                                    {appliedFilter}
-                                </strong>{' '}
-                                — {filteredProfessionals.length} de {professionals.length}{' '}
-                                profesionales
-                            </span>
-                            <button
-                                type='button'
-                                onClick={handleClearSearch}
-                                className='text-primary-600 hover:underline font-semibold'
-                            >
-                                Limpiar filtro
-                            </button>
-                        </div>
-                    )}
-
-                    <div className='bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-card overflow-hidden'>
-                        <div className='overflow-x-auto'>
-                            <table className='w-full text-left border-collapse text-xs'>
-                                <thead>
-                                    <tr className='border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40 text-neutral-500 uppercase tracking-wider font-semibold'>
-                                        <th className='p-4'>Profesional</th>
-                                        <th className='p-4'>Especialidades</th>
-                                        <th className='p-4'>Modalidad</th>
-                                        <th className='p-4'>Ubicación</th>
-                                        <th className='p-4 text-center'>Destacado</th>
-                                        <th className='p-4 text-center'>Fecha de alta</th>
-                                        <th className='p-4 text-center'>Estado</th>
-                                        <th className='p-4 text-right'>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody className='divide-y divide-neutral-100 dark:divide-neutral-800'>
-                                    {filteredProfessionals.length === 0 ? (
-                                        <tr>
-                                            <td
-                                                colSpan={7}
-                                                className='p-8 text-center text-neutral-500'
-                                            >
-                                                {appliedFilter
-                                                    ? `No se encontraron profesionales que coincidan con "${appliedFilter}".`
-                                                    : 'No hay profesionales cargados.'}
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredProfessionals.map((p) => (
-                                            <tr
-                                                key={p.id}
-                                                className='hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors'
-                                            >
-                                                <td className='p-4'>
-                                                    <div className='flex items-center gap-3'>
-                                                        <img
-                                                            src={p.photo_url}
-                                                            alt={p.name}
-                                                            className='w-10 h-10 rounded-xl object-cover shrink-0 ring-1 ring-neutral-200 dark:ring-neutral-700'
-                                                        />
-                                                        <div>
-                                                            <p className='font-bold text-neutral-900 dark:text-neutral-100'>
-                                                                {p.name}
-                                                            </p>
-                                                            <p className='text-[11px] text-neutral-500'>
-                                                                M.N. {p.license} • {p.age} años
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className='p-4 text-neutral-600 dark:text-neutral-300 max-w-[200px] truncate'>
-                                                    {p.specialties.join(', ')}
-                                                </td>
-                                                <td className='p-4 capitalize'>
-                                                    <span className='px-2 py-0.5 rounded-md font-medium text-[11px] bg-neutral-100 dark:bg-neutral-800'>
-                                                        {p.modality}
-                                                    </span>
-                                                </td>
-                                                <td className='p-4 text-neutral-600 dark:text-neutral-300'>
-                                                    {p.neighborhood || p.city}
-                                                </td>
-                                                <td className='p-4 text-center'>
-                                                    <button
-                                                        onClick={() => handleToggleFeatured(p)}
-                                                        className={`p-1.5 rounded-lg transition-colors ${
-                                                            p.is_featured
-                                                                ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
-                                                                : 'text-neutral-300 hover:text-neutral-500'
-                                                        }`}
-                                                        title='Alternar destacado'
-                                                    >
-                                                        <Star
-                                                            className={`w-4 h-4 ${p.is_featured ? 'fill-amber-400' : ''}`}
-                                                        />
-                                                    </button>
-                                                </td>
-                                                <td className='p-4 text-center'>
-                                                    <td className='p-4 text-center text-neutral-600 dark:text-neutral-300'>
-                                                        {formatFecha(p.hired_at)}
-                                                    </td>
-                                                </td>
-
-                                                <td className='p-4 text-center'>
-                                                    <button
-                                                        onClick={() => handleToggleActive(p)}
-                                                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
-                                                            p.is_active
-                                                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
-                                                                : 'bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400'
-                                                        }`}
-                                                    >
-                                                        {p.is_active ? 'Activo' : 'Oculto'}
-                                                    </button>
-                                                </td>
-                                                <td className='p-4 text-right space-x-1'>
-                                                    <button
-                                                        onClick={() => handleEditProf(p)}
-                                                        className='p-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                                        title='Editar'
-                                                    >
-                                                        <Edit3 className='w-4 h-4' />
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDeleteProf(p.id, p.name)
-                                                        }
-                                                        className='p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40'
-                                                        title='Eliminar'
-                                                    >
-                                                        <Trash2 className='w-4 h-4' />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                <ProfessionalsList
+                    searchQuery={searchQuery}
+                    onSearchChange={handleSearchChange}
+                    onSearchKeyDown={handleSearchKeyDown}
+                    onSearchFocus={() => setSearchFocused(true)}
+                    onSearchBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+                    onClearSearch={handleClearSearch}
+                    searchFocused={searchFocused}
+                    suggestions={suggestions}
+                    onSelectSuggestion={handleSelectSuggestion}
+                    appliedFilter={appliedFilter}
+                    professionals={professionals}
+                    filteredProfessionals={filteredProfessionals}
+                    formatHiredAt={formatFecha}
+                    onToggleFeatured={handleToggleFeatured}
+                    onToggleActive={handleToggleActive}
+                    onEdit={handleEditProf}
+                    onDelete={handleDeleteProf}
+                />
             )}
 
             {/* TAB 2: CREATE / EDIT PROFESSIONAL */}
@@ -1041,13 +841,13 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Modal de selección de dirección (geocode) */}
             {showGeocodeModal && (
-              <GeocodeModal
-              isOpen={showGeocodeModal}
-              address={profFormData.address}
-              candidates={geocodeCandidates}
-              onSelect={handleSelectCandidate}
-              onCancel={handleCancelGeocodeModal}
-            />
+                <GeocodeModal
+                    isOpen={showGeocodeModal}
+                    address={profFormData.address}
+                    candidates={geocodeCandidates}
+                    onSelect={handleSelectCandidate}
+                    onCancel={handleCancelGeocodeModal}
+                />
             )}
         </div>
     );
