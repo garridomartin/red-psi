@@ -65,6 +65,26 @@ export interface Professional {
     hired_at: string;
 }
 
+export type ProfFormData = Required<
+    Omit<
+        Professional,
+        | 'id'
+        | 'slug'
+        | 'birth_date'
+        | 'whatsapp_number'
+        | 'example'
+        | 'created_at'
+        | 'updated_at'
+        | 'deleted_at'
+    >
+>;
+
+export type MatriculaStatus = {
+    checking: boolean;
+    found: boolean | null;
+    nombreSugerido: string | null;
+};
+
 export interface ProfessionalFilters {
     searchQuery?: string;
     gender?: 'all' | 'femenino' | 'masculino' | 'no-binario' | 'otro';

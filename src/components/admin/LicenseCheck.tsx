@@ -1,19 +1,8 @@
 'use client';
 
+import { MatriculaStatus, Professional, ProfFormData } from '@/types';
 import React, { useRef } from 'react';
 import { toast } from 'sonner';
-
-type ProfFormData = {
-    license: string;
-    name: string;
-    [k: string]: any;
-};
-
-type MatriculaStatus = {
-    checking: boolean;
-    found: boolean | null;
-    nombreSugerido: string | null;
-};
 
 interface Props {
     profFormData: ProfFormData;

@@ -2,7 +2,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Professional, Article, Gender, Modality, ClientAge } from '@/types';
+import {
+    Professional,
+    Article,
+    Gender,
+    Modality,
+    ClientAge,
+    MatriculaStatus,
+    ProfFormData,
+} from '@/types';
 import {
     addProfessional,
     updateProfessional,
@@ -90,40 +98,15 @@ export const AdminDashboard: React.FC = () => {
     } | null>(null);
 
     // Estado para validación de matrícula
-    const [matriculaStatus, setMatriculaStatus] = useState<{
-        checking: boolean;
-        found: boolean | null;
-        nombreSugerido: string | null;
-    }>({ checking: false, found: null, nombreSugerido: null });
+    const [matriculaStatus, setMatriculaStatus] = useState<MatriculaStatus>({
+        checking: false,
+        found: null,
+        nombreSugerido: null,
+    });
 
     // Form State for Professional
     const [editingProfId, setEditingProfId] = useState<string | null>(null);
-    const [profFormData, setProfFormData] = useState<{
-        name: string;
-        title: string;
-        license: string;
-        bio: string;
-        photo_url: string;
-        gender: Gender;
-        age: number;
-        specialties: string[];
-        insurances: string[];
-        modality: Modality;
-        address: string;
-        neighborhood: string;
-        city: string;
-        lat: number;
-        lng: number;
-        instagram_url: string;
-        contact_email: string;
-        contact_phone: string;
-        session_price: string;
-        approach: string;
-        is_active: boolean;
-        client_age: ClientAge[];
-        is_featured: boolean;
-        hired_at: string;
-    }>({
+    const [profFormData, setProfFormData] = useState<ProfFormData>({
         name: '',
         title: '',
         license: '',
