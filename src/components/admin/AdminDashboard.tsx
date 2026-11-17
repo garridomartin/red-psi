@@ -26,6 +26,7 @@ import ArticlesManager from './ArticlesManager/ArticlesManager';
 import StatsPanel from './StatsPanel/StatsPanel';
 import GeocodeModal from './GeocodeModal/GeocodeModal';
 import ProfessionalsList from './ProfessionalsList/ProfessionalsList';
+import { notifyError, notifySuccess } from '@/lib/utils/toast';
 
 export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'list' | 'create-prof' | 'articles' | 'stats'>(
@@ -153,17 +154,6 @@ export const AdminDashboard: React.FC = () => {
         };
     }, []);
 
-    const showNotification = (type: 'success' | 'error', text: string) => {
-        if (type === 'success') {
-            toast.success(text);
-        } else {
-            toast.error(text, {
-                description: 'Revisá los datos e intentá de nuevo.',
-                duration: 6000,
-            });
-        }
-    };
-
     // Debounce ref para no spamear la API
     const matriculaDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -277,7 +267,7 @@ export const AdminDashboard: React.FC = () => {
         if (!validated.success) {
             const firstError =
                 validated.error.issues[0]?.message || 'Verificá los datos del formulario';
-            showNotification('error', firstError);
+            notifyError(firstError);
             return;
         }
 
@@ -459,7 +449,7 @@ export const AdminDashboard: React.FC = () => {
         setGeocodePendingAction(null);
         setGeocodeCandidates([]);
         setGeocodeQuery(null);
-        showNotification('error', 'Elegí una dirección para continuar. No se guardó nada.');
+        notifyError('Elegí una dirección para continuar. No se guardó nada.');
     };
 
     const handleDeleteProf = (id: string, name: string) => {
@@ -538,7 +528,7 @@ export const AdminDashboard: React.FC = () => {
 
         const validated = articleSchema.safeParse(articleFormData);
         if (!validated.success) {
-            showNotification('error', validated.error.issues[0]?.message || 'Verificá los datos');
+            notifyError(validated.error.issues[0]?.message || 'Verificá los datos');
             return;
         }
 
@@ -546,12 +536,12 @@ export const AdminDashboard: React.FC = () => {
             if (editingArticleId) {
                 // MODO EDICIÓN
                 await updateArticle(editingArticleId, { ...articleFormData, slug });
-                showNotification('success', 'Artículo actualizado con éxito.');
+                notifySuccess('Artículo actualizado con éxito.');
                 setEditingArticleId(null);
             } else {
                 // MODO CREACIÓN
                 await addArticle({ ...articleFormData, slug });
-                showNotification('success', 'Artículo publicado con éxito.');
+                notifySuccess('Artículo actualizado con éxito.');
             }
 
             // Limpiar formulario
@@ -571,7 +561,7 @@ export const AdminDashboard: React.FC = () => {
 
             await loadAllData();
         } catch (err: any) {
-            showNotification('error', `Error al guardar: ${err.message}`);
+            notifyError(`Error al guardar: ${err.message}`);
         }
     };
 
