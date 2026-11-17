@@ -3,6 +3,8 @@
 import SearchBar from './SearchBar';
 import ProfessionalsTable from './ProfessionalsTable';
 import { Professional, ProfessionalListItem, ProfessionalSuggestion } from '@/types';
+import { ProfessionalsSortBy, SortDir } from '@/lib/data/dataStore';
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from 'lucide-react';
 
 interface ProfessionalsListProps {
     // Búsqueda
@@ -15,6 +17,13 @@ interface ProfessionalsListProps {
     searchFocused: boolean;
     suggestions: ProfessionalSuggestion[];
     onSelectSuggestion: (s: ProfessionalSuggestion) => void;
+
+    // Ordenamiento (server-side)
+    sortBy: ProfessionalsSortBy;
+    sortDir: SortDir;
+    sortLoading: boolean;
+    onSortByHiredAt: () => void;
+    onSortByStatus: () => void;
 
     // Filtro activo
     appliedFilter: string | null;
@@ -37,6 +46,15 @@ interface ProfessionalsListProps {
     emptyText?: string;
 }
 
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+    if (!active) return <ArrowUpDown className='w-3.5 h-3.5 opacity-50' />;
+    return dir === 'asc' ? (
+        <ArrowUp className='w-3.5 h-3.5' />
+    ) : (
+        <ArrowDown className='w-3.5 h-3.5' />
+    );
+}
+
 export default function ProfessionalsList({
     searchQuery,
     onSearchChange,
@@ -57,6 +75,11 @@ export default function ProfessionalsList({
     onDelete,
     searchPlaceholder,
     emptyText,
+    sortBy,
+    sortDir,
+    sortLoading,
+    onSortByHiredAt,
+    onSortByStatus,
 }: ProfessionalsListProps) {
     return (
         <div className='space-y-4'>
@@ -102,6 +125,12 @@ export default function ProfessionalsList({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 emptyText={emptyText}
+                // === NUEVO: pasamos el estado y handlers de sort a la tabla ===
+                sortBy={sortBy}
+                sortDir={sortDir}
+                sortLoading={sortLoading}
+                onSortByHiredAt={onSortByHiredAt}
+                onSortByStatus={onSortByStatus}
             />
         </div>
     );

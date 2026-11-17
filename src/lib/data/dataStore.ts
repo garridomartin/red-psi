@@ -84,8 +84,19 @@ export async function getProfessionalBySlug(slug: string): Promise<Professional 
 // ==========================================
 // GETS PROFESIONALES PARA ADMINS
 // ==========================================
-export async function getProfessionalsForAdmin(): Promise<Professional[]> {
-    const res = await fetch('/api/professionals', {
+export type ProfessionalsSortBy = 'hired_at' | 'is_active' | 'name' | 'created_at';
+export type SortDir = 'asc' | 'desc';
+
+export async function getProfessionalsForAdmin(options?: {
+    sortBy?: ProfessionalsSortBy;
+    sortDir?: SortDir;
+}): Promise<Professional[]> {
+    const params = new URLSearchParams();
+    if (options?.sortBy) params.set('sortBy', options.sortBy);
+    if (options?.sortDir) params.set('sortDir', options.sortDir);
+
+    const qs = params.toString();
+    const res = await fetch(`/api/professionals${qs ? `?${qs}` : ''}`, {
         credentials: 'include',
     });
     if (!res.ok) {

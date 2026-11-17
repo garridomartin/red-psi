@@ -2,6 +2,8 @@
 
 import { Professional, ProfessionalListItem } from '@/types';
 import ProfessionalRow from './Rows';
+import { ProfessionalsSortBy, SortDir } from '@/lib/data/dataStore';
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from 'lucide-react';
 
 interface ProfessionalsTableProps {
     professionals: Professional[];
@@ -13,6 +15,20 @@ interface ProfessionalsTableProps {
     onEdit: (p: Professional) => void;
     onDelete: (id: string, name: string) => void;
     emptyText?: string;
+    sortBy: ProfessionalsSortBy;
+    sortDir: SortDir;
+    sortLoading: boolean;
+    onSortByHiredAt: () => void;
+    onSortByStatus: () => void;
+}
+
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+    if (!active) return <ArrowUpDown className='w-3.5 h-3.5 opacity-50' />;
+    return dir === 'asc' ? (
+        <ArrowUp className='w-3.5 h-3.5' />
+    ) : (
+        <ArrowDown className='w-3.5 h-3.5' />
+    );
 }
 
 export default function ProfessionalsTable({
@@ -25,6 +41,11 @@ export default function ProfessionalsTable({
     onEdit,
     onDelete,
     emptyText,
+    sortBy,
+    sortDir,
+    sortLoading,
+    onSortByHiredAt,
+    onSortByStatus,
 }: ProfessionalsTableProps) {
     return (
         <div className='bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-card overflow-hidden'>
@@ -37,8 +58,53 @@ export default function ProfessionalsTable({
                             <th className='p-4'>Modalidad</th>
                             <th className='p-4'>Ubicación</th>
                             <th className='p-4 text-center'>Destacado</th>
-                            <th className='p-4 text-center'>Fecha de alta</th>
-                            <th className='p-4 text-center'>Estado</th>
+
+                            {/* === FECHA DE ALTA como botón (con flechitas) === */}
+                            <th className='p-4 text-center'>
+                                <button
+                                    type='button'
+                                    onClick={onSortByHiredAt}
+                                    disabled={sortLoading}
+                                    aria-sort={
+                                        sortBy === 'hired_at'
+                                            ? sortDir === 'asc'
+                                                ? 'ascending'
+                                                : 'descending'
+                                            : 'none'
+                                    }
+                                    className='inline-flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 disabled:opacity-60 transition-colors'
+                                >
+                                    {sortLoading && sortBy === 'hired_at' ? (
+                                        <Loader2 className='w-3.5 h-3.5 animate-spin' />
+                                    ) : (
+                                        <SortIcon active={sortBy === 'hired_at'} dir={sortDir} />
+                                    )}
+                                    Fecha de alta
+                                </button>
+                            </th>
+
+                            {/* === ESTADO como botón (sin flechita) === */}
+                            <th className='p-4 text-center'>
+                                <button
+                                    type='button'
+                                    onClick={onSortByStatus}
+                                    disabled={sortLoading}
+                                    aria-sort={
+                                        sortBy === 'is_active'
+                                            ? sortDir === 'asc'
+                                                ? 'ascending'
+                                                : 'descending'
+                                            : 'none'
+                                    }
+                                    className='inline-flex items-center justify-center text-[11px] font-bold uppercase tracking-wider text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 disabled:opacity-60 transition-colors'
+                                >
+                                    {sortLoading && sortBy === 'is_active' ? (
+                                        <Loader2 className='w-3.5 h-3.5 animate-spin mr-1.5' />
+                                    ) : null}
+                                    Estado
+                                </button>
+                            </th>
+
                             <th className='p-4 text-right'>Acciones</th>
                         </tr>
                     </thead>

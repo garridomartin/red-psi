@@ -34,6 +34,10 @@ const ALLOWED = [
     'whatsapp_number',
 ];
 
+// Columnas permitidas para ordenar (whitelist para evitar inyección)
+const SORTABLE_COLUMNS = ['hired_at', 'is_active', 'name', 'created_at'] as const;
+type SortableColumn = (typeof SORTABLE_COLUMNS)[number];
+
 export async function POST(req: NextRequest) {
     const session = await getSession();
     if (!session) {
@@ -92,7 +96,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     const session = await getSession();
     if (!session) {
         return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
@@ -101,11 +105,23 @@ export async function GET() {
         return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
+    // === leer query params de ordenamiento ===
+    const { searchParams } = new URL(req.url);
+    const sortByParam = searchParams.get('sortBy');
+    const sortDirParam = searchParams.get('sortDir');
+
+    const sortBy: SortableColumn =
+        sortByParam && (SORTABLE_COLUMNS as readonly string[]).includes(sortByParam)
+            ? (sortByParam as SortableColumn)
+            : 'created_at';
+
+    const ascending = sortDirParam === 'asc';
+
     const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
         .from('professionals')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order(sortBy, { ascending });
 
     if (error) {
         console.error('Error leyendo profesionales (admin):', error);

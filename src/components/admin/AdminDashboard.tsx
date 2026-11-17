@@ -12,6 +12,8 @@ import {
     getStats,
     AppStats,
     getProfessionalsForAdmin,
+    ProfessionalsSortBy,
+    SortDir,
 } from '@/lib/data/dataStore';
 
 import { professionalSchema } from '@/lib/validations';
@@ -22,7 +24,7 @@ import ArticlesManager from './ArticlesManager/ArticlesManager';
 import StatsPanel from './StatsPanel/StatsPanel';
 import GeocodeModal from './GeocodeModal/GeocodeModal';
 import ProfessionalsList from './ProfessionalsList/ProfessionalsList';
-import { notifyError, notifySuccess } from '@/lib/utils/toast';
+import { notifyError } from '@/lib/utils/toast';
 import { formatDateAR, todayISO } from '@/lib/utils/dates';
 
 export const AdminDashboard: React.FC = () => {
@@ -49,6 +51,9 @@ export const AdminDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
     const [appliedFilter, setAppliedFilter] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<ProfessionalsSortBy>('created_at');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
+    const [sortLoading, setSortLoading] = useState(false);
     const [geocodeCandidates, setGeocodeCandidates] = useState<
         Array<{
             lat: number;
@@ -109,19 +114,16 @@ export const AdminDashboard: React.FC = () => {
         hired_at: '',
     });
 
-    const loadAllData = async () => {
-        const [profs] = await Promise.all([
-            getProfessionalsForAdmin(), // ← dashboard: ve todos (incluidos inactivos)
-        ]);
+    const loadAllData = useCallback(async () => {
+        setSortLoading(true);
+        const [profs] = await Promise.all([getProfessionalsForAdmin({ sortBy, sortDir })]);
         setProfessionals(profs);
-
         setStats(getStats());
-    };
+        setSortLoading(false);
+    }, [sortBy, sortDir]);
 
     useEffect(() => {
-        // Limpiar formularios AL MONTAR (garantiza que arranquen vacíos)
         resetProfForm();
-        loadAllData();
         const handleSync = () => loadAllData();
         window.addEventListener('red_epsilon_data_changed', handleSync);
         return () => {
@@ -131,10 +133,36 @@ export const AdminDashboard: React.FC = () => {
                 matriculaDebounceRef.current = null;
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        loadAllData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortBy, sortDir]);
 
     // Debounce ref para no spamear la API
     const matriculaDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    const handleSortByHiredAt = () => {
+        if (sortBy !== 'hired_at') {
+            setSortBy('hired_at');
+            setSortDir('desc'); // primer click: más recientes primero
+        } else {
+            setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+        }
+    };
+
+    // Estado: ciclo inactivos → activos → inactivos → ...
+    // Convención: asc = inactivos primero, desc = activos primero
+    const handleSortByStatus = () => {
+        if (sortBy !== 'is_active') {
+            setSortBy('is_active');
+            setSortDir('asc'); // primer click: inactivos primero (según pedido)
+        } else {
+            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        }
+    };
 
     const resetProfForm = () => {
         setEditingProfId(null);
@@ -642,6 +670,11 @@ export const AdminDashboard: React.FC = () => {
                     onToggleActive={handleToggleActive}
                     onEdit={handleEditProf}
                     onDelete={handleDeleteProf}
+                    sortBy={sortBy}
+                    sortDir={sortDir}
+                    sortLoading={sortLoading}
+                    onSortByHiredAt={handleSortByHiredAt}
+                    onSortByStatus={handleSortByStatus}
                 />
             )}
 
