@@ -1,12 +1,15 @@
 'use client';
 
-import { ArticleFormData, ArticleFormFields } from '@/types';
+import { Loader2, X } from 'lucide-react';
+import { ArticleFormFields } from '@/types';
 
 interface ArticleFormProps<T extends ArticleFormFields> {
     formData: T;
     setFormData: React.Dispatch<React.SetStateAction<T>>;
     onSubmit: (e: React.FormEvent) => void | Promise<void>;
     isSubmitting?: boolean;
+    editingArticleId?: string | null;
+    onCancelEdit?: () => void;
 }
 
 export default function ArticleForm<T extends ArticleFormFields>({
@@ -14,15 +17,35 @@ export default function ArticleForm<T extends ArticleFormFields>({
     setFormData,
     onSubmit,
     isSubmitting = false,
+    editingArticleId = null,
+    onCancelEdit,
 }: ArticleFormProps<T>) {
+    const isEditing = Boolean(editingArticleId);
+
     const patch = (partial: Partial<ArticleFormFields>) =>
         setFormData((prev) => ({ ...prev, ...partial }));
 
     return (
         <div className='bg-white dark:bg-neutral-900 rounded-3xl p-6 border border-neutral-200 dark:border-neutral-800 shadow-card'>
-            <h3 className='font-bold text-base font-display text-neutral-900 dark:text-neutral-50 mb-4'>
-                Publicar nuevo artículo de divulgación
-            </h3>
+            <div className='flex items-center justify-between mb-4'>
+                <h3 className='font-bold text-base font-display text-neutral-900 dark:text-neutral-50'>
+                    {isEditing
+                        ? 'Editar artículo de divulgación'
+                        : 'Publicar nuevo artículo de divulgación'}
+                </h3>
+
+                {isEditing && onCancelEdit && (
+                    <button
+                        type='button'
+                        onClick={onCancelEdit}
+                        disabled={isSubmitting}
+                        className='inline-flex items-center gap-1.5 text-[11px] font-bold rounded-lg px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                    >
+                        <X className='w-3.5 h-3.5' />
+                        Cancelar edición
+                    </button>
+                )}
+            </div>
 
             <form onSubmit={onSubmit} className='space-y-4'>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
@@ -83,13 +106,31 @@ export default function ArticleForm<T extends ArticleFormFields>({
                     />
                 </div>
 
-                <div className='flex justify-end'>
+                <div className='flex justify-end gap-2'>
+                    {isEditing && onCancelEdit && (
+                        <button
+                            type='button'
+                            onClick={onCancelEdit}
+                            disabled={isSubmitting}
+                            className='py-2.5 px-5 text-xs font-bold rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-60 disabled:cursor-not-allowed'
+                        >
+                            Cancelar
+                        </button>
+                    )}
+
                     <button
                         type='submit'
                         disabled={isSubmitting}
-                        className='py-2.5 px-5 text-xs font-bold rounded-xl bg-primary-400 hover:bg-primary-300 text-neutral-950 disabled:opacity-60 disabled:cursor-not-allowed'
+                        className='inline-flex items-center gap-2 py-2.5 px-5 text-xs font-bold rounded-xl bg-primary-400 hover:bg-primary-300 text-neutral-950 disabled:opacity-60 disabled:cursor-not-allowed'
                     >
-                        {isSubmitting ? 'Publicando...' : 'Publicar artículo'}
+                        {isSubmitting && <Loader2 className='w-3.5 h-3.5 animate-spin' />}
+                        {isSubmitting
+                            ? isEditing
+                                ? 'Guardando...'
+                                : 'Publicando...'
+                            : isEditing
+                              ? 'Guardar cambios'
+                              : 'Publicar artículo'}
                     </button>
                 </div>
             </form>

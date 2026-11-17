@@ -35,4 +35,7 @@ export const notifyLoading = (message: string) => toast.loading(message, { durat
  * confirmaciones con action/cancel, etc. Así los módulos no importan
  * `sonner` directamente y queda un único punto de entrada.
  */
+
+/** Cierra un toast por id (no falla si no existe). */
+export const dismissToast = (id: string | number) => toast.dismiss(id);
 export { toast };

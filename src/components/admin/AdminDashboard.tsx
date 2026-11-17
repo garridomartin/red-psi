@@ -1,7 +1,7 @@
 //AdminDashboard.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Professional, Article, MatriculaStatus, ProfFormData } from '@/types';
 import {
     addProfessional,
@@ -9,16 +9,12 @@ import {
     deleteProfessional,
     toggleFeaturedProfessional,
     toggleActiveProfessional,
-    getArticles,
-    addArticle,
-    deleteArticle,
     getStats,
-    updateArticle,
     AppStats,
     getProfessionalsForAdmin,
 } from '@/lib/data/dataStore';
 
-import { professionalSchema, articleSchema } from '@/lib/validations';
+import { professionalSchema } from '@/lib/validations';
 import { Plus, Users, FileText, BarChart3, X, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ProfesionalForm from './ProfesionalForm/ProfesionalForm';
@@ -27,6 +23,7 @@ import StatsPanel from './StatsPanel/StatsPanel';
 import GeocodeModal from './GeocodeModal/GeocodeModal';
 import ProfessionalsList from './ProfessionalsList/ProfessionalsList';
 import { notifyError, notifySuccess } from '@/lib/utils/toast';
+import { formatDateAR, todayISO } from '@/lib/utils/dates';
 
 export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'list' | 'create-prof' | 'articles' | 'stats'>(
@@ -34,8 +31,8 @@ export const AdminDashboard: React.FC = () => {
     );
     const [professionals, setProfessionals] = useState<Professional[]>([]);
     const [originalProf, setOriginalProf] = useState<Professional | null>(null);
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
+    const [articlesCount, setArticlesCount] = useState(0);
+
     const [stats, setStats] = useState<AppStats>({
         totalViews: 0,
         totalContacts: 0,
@@ -112,36 +109,18 @@ export const AdminDashboard: React.FC = () => {
         hired_at: '',
     });
 
-    // Form State for Article
-    const [articleFormData, setArticleFormData] = useState({
-        title: '',
-        slug: '',
-        cover_url:
-            'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
-        excerpt: '',
-        content: '',
-        author: 'Equipo Editorial Psicologos La Plata',
-        author_role: 'Psicología & Divulgación',
-        reading_time_minutes: 5,
-        tags: ['Salud Mental', 'Terapia'],
-        is_published: true,
-    });
-
     const loadAllData = async () => {
-        const [profs, arts] = await Promise.all([
+        const [profs] = await Promise.all([
             getProfessionalsForAdmin(), // ← dashboard: ve todos (incluidos inactivos)
-            getArticles(),
         ]);
         setProfessionals(profs);
-        setArticles(arts);
+
         setStats(getStats());
     };
 
     useEffect(() => {
         // Limpiar formularios AL MONTAR (garantiza que arranquen vacíos)
         resetProfForm();
-        resetArticleForm();
-
         loadAllData();
         const handleSync = () => loadAllData();
         window.addEventListener('red_epsilon_data_changed', handleSync);
@@ -194,23 +173,6 @@ export const AdminDashboard: React.FC = () => {
             clearTimeout(matriculaDebounceRef.current);
             matriculaDebounceRef.current = null;
         }
-    };
-
-    const resetArticleForm = () => {
-        setEditingArticleId(null);
-        setArticleFormData({
-            title: '',
-            slug: '',
-            cover_url:
-                'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
-            excerpt: '',
-            content: '',
-            author: 'Equipo Editorial Psicologos La Plata',
-            author_role: 'Psicología & Divulgación',
-            reading_time_minutes: 5,
-            tags: ['Salud Mental', 'Terapia'],
-            is_published: true,
-        });
     };
 
     const handleEditProf = (prof: Professional) => {
@@ -516,84 +478,6 @@ export const AdminDashboard: React.FC = () => {
         loadAllData();
     };
 
-    const handleCreateArticle = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const slug = articleFormData.title
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)+/g, '');
-
-        const validated = articleSchema.safeParse(articleFormData);
-        if (!validated.success) {
-            notifyError(validated.error.issues[0]?.message || 'Verificá los datos');
-            return;
-        }
-
-        try {
-            if (editingArticleId) {
-                // MODO EDICIÓN
-                await updateArticle(editingArticleId, { ...articleFormData, slug });
-                notifySuccess('Artículo actualizado con éxito.');
-                setEditingArticleId(null);
-            } else {
-                // MODO CREACIÓN
-                await addArticle({ ...articleFormData, slug });
-                notifySuccess('Artículo actualizado con éxito.');
-            }
-
-            // Limpiar formulario
-            setArticleFormData({
-                title: '',
-                slug: '',
-                cover_url:
-                    'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
-                excerpt: '',
-                content: '',
-                author: 'Equipo Editorial Psicologos La Plata',
-                author_role: 'Psicología & Divulgación',
-                reading_time_minutes: 5,
-                tags: ['Salud Mental', 'Terapia'],
-                is_published: true,
-            });
-
-            await loadAllData();
-        } catch (err: any) {
-            notifyError(`Error al guardar: ${err.message}`);
-        }
-    };
-
-    const handleDeleteArticle = (id: string, title: string) => {
-        toast(`¿Eliminar artículo "${title}"?`, {
-            description: 'Esta acción no se puede deshacer.',
-            duration: Infinity,
-            action: {
-                label: 'Eliminar',
-                onClick: async () => {
-                    const t = toast.loading('Eliminando artículo…');
-                    try {
-                        await deleteArticle(id);
-                        await loadAllData();
-                        toast.success('Artículo eliminado.', { id: t });
-                    } catch (err: any) {
-                        console.error('Error eliminando artículo:', err);
-                        toast.error('No se pudo eliminar el artículo.', {
-                            id: t,
-                            description: err?.message ?? 'Intentá de nuevo en unos segundos.',
-                            duration: 8000,
-                        });
-                    }
-                },
-            },
-            cancel: {
-                label: 'Cancelar',
-                onClick: () => toast.dismiss(),
-            },
-        });
-    };
-
     // ===== Búsqueda de profesionales =====
     const normalize = (s: string) =>
         s
@@ -667,15 +551,14 @@ export const AdminDashboard: React.FC = () => {
         setShowHiredAtModal(false);
         const action = pendingHiredAtAction;
         setPendingHiredAtAction(null);
-        const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+        const today = todayISO();
         await runGeocodeAndPersist({ ...action.formData, hired_at: today }, action.addressChanged);
     };
 
-    const formatFecha = (iso: string | null | undefined) => {
-        if (!iso) return '—';
-        const [y, m, d] = iso.slice(0, 10).split('-');
-        return `${d}/${m}/${y}`;
-    };
+    const handleArticlesChange = useCallback((arts: Article[]) => {
+        setArticlesCount(arts.length);
+    }, []);
+
     return (
         <div className='space-y-8'>
             {/* Header Info */}
@@ -713,7 +596,11 @@ export const AdminDashboard: React.FC = () => {
                         label: editingProfId ? 'Editar profesional' : 'Cargar profesional',
                         icon: Plus,
                     },
-                    { id: 'articles', label: `Artículos (${articles.length})`, icon: FileText },
+                    {
+                        id: 'articles',
+                        label: `Artículos (${articlesCount})`,
+                        icon: FileText,
+                    },
                     { id: 'stats', label: 'Estadísticas & Catálogos', icon: BarChart3 },
                 ].map((tab) => {
                     const IconComp = tab.icon;
@@ -750,7 +637,7 @@ export const AdminDashboard: React.FC = () => {
                     appliedFilter={appliedFilter}
                     professionals={professionals}
                     filteredProfessionals={filteredProfessionals}
-                    formatHiredAt={formatFecha}
+                    formatHiredAt={formatDateAR}
                     onToggleFeatured={handleToggleFeatured}
                     onToggleActive={handleToggleActive}
                     onEdit={handleEditProf}
@@ -774,18 +661,9 @@ export const AdminDashboard: React.FC = () => {
             )}
 
             {/* TAB 3: ARTICLES MANAGEMENT */}
-            {activeTab === 'articles' && (
-                <ArticlesManager
-                    articleFormData={articleFormData}
-                    setArticleFormData={setArticleFormData}
-                    onSubmitArticle={handleCreateArticle}
-                    articles={articles}
-                    onDeleteArticle={handleDeleteArticle}
-                    // opcionales si tenés los flags:
-                    // isSubmittingArticle={isCreatingArticle}
-                    // deletingArticleId={deletingArticleId}
-                />
-            )}
+            <div className={activeTab === 'articles' ? '' : 'hidden'}>
+                <ArticlesManager onArticlesChange={handleArticlesChange} />
+            </div>
 
             {/* TAB 4: STATS & CATALOG MANAGEMENT */}
             {activeTab === 'stats' && (
@@ -804,10 +682,9 @@ export const AdminDashboard: React.FC = () => {
                         <h2 className='mb-2 text-lg font-bold'>Fecha de alta</h2>
                         <p className='mb-4 text-sm text-neutral-600 dark:text-neutral-300'>
                             Fecha de alta actual:{' '}
-                            <strong>{formatFecha(originalProf?.hired_at ?? '')}</strong>
+                            <strong>{formatDateAR(originalProf?.hired_at ?? '')}</strong>
                             <br />
-                            ¿Querés mantenerla o actualizarla a hoy (
-                            {formatFecha(new Date().toISOString().slice(0, 10))})?
+                            ¿Querés mantenerla o actualizarla a hoy ({formatDateAR(todayISO())})?
                         </p>
                         <div className='flex justify-end gap-2'>
                             <button

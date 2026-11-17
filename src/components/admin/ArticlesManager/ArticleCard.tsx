@@ -1,15 +1,21 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil, Loader2 } from 'lucide-react';
 import type { Article } from '@/types';
 
 interface ArticleCardProps {
     article: Article;
     onDelete: (id: string, title: string) => void;
+    onEdit: (article: Article) => void;
     isDeleting?: boolean;
 }
 
-export default function ArticleCard({ article, onDelete, isDeleting = false }: ArticleCardProps) {
+export default function ArticleCard({
+    article,
+    onDelete,
+    onEdit,
+    isDeleting = false,
+}: ArticleCardProps) {
     return (
         <div className='bg-white dark:bg-neutral-900 rounded-3xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm flex items-start gap-4'>
             <img
@@ -24,15 +30,32 @@ export default function ArticleCard({ article, onDelete, isDeleting = false }: A
                 <p className='text-xs text-neutral-500 line-clamp-2 mt-1'>{article.excerpt}</p>
                 <div className='mt-3 flex items-center justify-between text-[11px] text-neutral-400'>
                     <span>{article.author}</span>
-                    <button
-                        type='button'
-                        onClick={() => onDelete(article.id, article.title)}
-                        disabled={isDeleting}
-                        className='text-red-500 hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed'
-                    >
-                        <Trash2 className='w-3 h-3' />
-                        <span>Eliminar</span>
-                    </button>
+
+                    <div className='flex items-center gap-3'>
+                        <button
+                            type='button'
+                            onClick={() => onEdit(article)}
+                            disabled={isDeleting}
+                            className='text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                            <Pencil className='w-3 h-3' />
+                            <span>Editar</span>
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={() => onDelete(article.id, article.title)}
+                            disabled={isDeleting}
+                            className='text-red-500 hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                            {isDeleting ? (
+                                <Loader2 className='w-3 h-3 animate-spin' />
+                            ) : (
+                                <Trash2 className='w-3 h-3' />
+                            )}
+                            <span>{isDeleting ? 'Eliminando…' : 'Eliminar'}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
