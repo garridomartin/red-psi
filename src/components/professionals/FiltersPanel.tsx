@@ -128,14 +128,14 @@ export const FiltersPanel: React.FC<FiltersPanelProps> = ({
             {/* Specialty Filter */}
             <div>
                 <label className='block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-2'>
-                    Especialidad / Enfoque
+                    Area / Enfoque
                 </label>
                 <select
                     value={filters.specialty}
                     onChange={(e) => onFilterChange({ ...filters, specialty: e.target.value })}
                     className='w-full px-3 py-2.5 text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-400'
                 >
-                    <option value='all'>Todas las especialidades</option>
+                    <option value='all'>Todas las áreas/enfoques</option>
                     {SPECIALTIES_CATALOG.map((item) => (
                         <option key={item.id} value={item.name}>
                             {item.name}

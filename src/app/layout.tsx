@@ -13,7 +13,7 @@ export const metadata: Metadata = {
         template: '%s | Psicologos La Plata',
     },
     description:
-        'Encontrá el psicólogo ideal para vos. Terapia presencial y online con profesionales matriculados en Argentina. Filtrá por especialidad, obra social y cercanía.',
+        'Encontrá el psicólogo ideal para vos. Terapia presencial y online con profesionales matriculados en Argentina. Filtrá por área o enfoque, obra social y cercanía.',
     keywords: [
         'psicólogos buenos aires',
         'terapia online',

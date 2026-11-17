@@ -227,7 +227,7 @@ export default function ProfesionalForm({
             {/* Especialidades */}
             <div>
                 <label className='block text-xs font-bold text-neutral-800 dark:text-neutral-200 mb-2'>
-                    Especialidades (alimentan el motor de búsqueda y filtros) *
+                    Enfoque (alimentan el motor de búsqueda y filtros) *
                 </label>
                 <CheckboxGroup
                     options={specialtiesCatalog.map((s) => ({ id: s.name, label: s.name }))}

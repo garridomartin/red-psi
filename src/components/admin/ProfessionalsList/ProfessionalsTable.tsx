@@ -33,7 +33,7 @@ export default function ProfessionalsTable({
                     <thead>
                         <tr className='border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40 text-neutral-500 uppercase tracking-wider font-semibold'>
                             <th className='p-4'>Profesional</th>
-                            <th className='p-4'>Especialidades</th>
+                            <th className='p-4'>Enfoque</th>
                             <th className='p-4'>Modalidad</th>
                             <th className='p-4'>Ubicación</th>
                             <th className='p-4 text-center'>Destacado</th>

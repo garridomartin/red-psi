@@ -21,7 +21,7 @@ export const professionalSchema = z.object({
     photo_url: z.string().optional(),
     gender: z.enum(['femenino', 'masculino', 'no-binario', 'otro']),
     age: z.coerce.number().min(22, 'Edad mínima: 22').max(99, 'Edad máxima: 99'),
-    specialties: z.array(z.string()).min(1, 'Seleccioná al menos una especialidad'),
+    specialties: z.array(z.string()).min(1, 'Seleccioná al menos un área o enfoque'),
     insurances: z.array(z.string()).min(1, 'Seleccioná al menos una opción o Particular'),
     modality: z.enum(['presencial', 'online', 'ambas']),
     address: z.string().min(5, 'Ingresá la dirección aproximada'),

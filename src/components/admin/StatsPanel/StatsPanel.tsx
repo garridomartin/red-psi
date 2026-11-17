@@ -45,7 +45,7 @@ export default function StatsPanel({
             {/* Catalogs Overview */}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 <CatalogCard
-                    title='Catálogo de Especialidades'
+                    title='Catálogo de Areas / Enfoques'
                     icon={Tag}
                     iconClassName='text-primary-500'
                     items={specialtiesCatalog}
