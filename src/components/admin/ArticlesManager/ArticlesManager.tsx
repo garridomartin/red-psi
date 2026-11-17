@@ -56,7 +56,7 @@ export default function ArticlesManager<T extends ArticleFormFields>({
             excerpt: article.excerpt,
             content: article.content,
             author: article.author,
-            author_role: article.author_role,
+            author_role: article.author_role ?? 'Psicología & Divulgación',
             reading_time_minutes: article.reading_time_minutes,
             tags: article.tags,
             is_published: article.is_published,
