@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { getArticleBySlug, getArticles } from '@/lib/data/dataStore';
 import { Article } from '@/types';
-import { ArrowLeft, Clock, Calendar, Share2, BookOpen, User, Compass } from 'lucide-react';
+import { ArrowLeft, Clock, Share2, BookOpen, Compass } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function ArticleDetailPage() {
     const params = useParams();
@@ -122,20 +124,8 @@ export default function ArticleDetailPage() {
             </div>
 
             {/* Article Body */}
-            <div className='prose prose-neutral dark:prose-invert max-w-none text-neutral-800 dark:text-neutral-200 text-sm sm:text-base leading-relaxed space-y-4'>
-                {article.content.split('\n\n').map((paragraph, index) => {
-                    if (paragraph.startsWith('###')) {
-                        return (
-                            <h3
-                                key={index}
-                                className='text-xl font-bold font-display text-neutral-900 dark:text-neutral-50 pt-4'
-                            >
-                                {paragraph.replace('###', '').trim()}
-                            </h3>
-                        );
-                    }
-                    return <p key={index}>{paragraph.trim()}</p>;
-                })}
+            <div className='prose prose-neutral dark:prose-invert max-w-none text-neutral-800 dark:text-neutral-200 text-sm sm:text-base leading-relaxed'>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
             </div>
 
             {/* CTA Box: Find psychologist */}
