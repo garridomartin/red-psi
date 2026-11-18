@@ -156,13 +156,18 @@ export type ArticleFormData = Pick<Article, 'title' | 'cover_url' | 'excerpt' | 
 
 export type ArticleFormState = ArticleFormFields & Record<string, unknown>;
 
-export type ArticleFormFields = Pick<Article, 'title' | 'cover_url' | 'excerpt' | 'content'>;
+export type ArticleFormFields = Pick<
+    Article,
+    'title' | 'cover_url' | 'excerpt' | 'content' | 'author' | 'author_role'
+>;
 
 export const EMPTY_ARTICLE_FORM: ArticleFormFields = {
     title: '',
     cover_url: '',
     excerpt: '',
     content: '',
+    author: '',
+    author_role: '',
 };
 
 export interface AdminStats {

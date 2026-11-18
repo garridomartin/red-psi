@@ -1,12 +1,18 @@
 'use client';
 
-import type { Article, ArticleFormFields } from '@/types';
+import type { Article, ArticleFormFields, Professional } from '@/types';
 import ArticleForm from './ArticleForm';
 import ArticleCard from './ArticleCard';
 import { notifyError, notifySuccess } from '@/lib/utils/toast';
 import { useEffect, useState } from 'react';
 import { articleSchema } from '@/lib/validations';
-import { addArticle, deleteArticle, getArticles, updateArticle } from '@/lib/data/dataStore';
+import {
+    addArticle,
+    deleteArticle,
+    getArticles,
+    getProfessionalsForAdmin,
+    updateArticle,
+} from '@/lib/data/dataStore';
 import { toast } from 'sonner';
 
 interface ArticlesManagerProps<T extends ArticleFormFields> {
@@ -25,6 +31,7 @@ export default function ArticlesManager<T extends ArticleFormFields>({
 }: ArticlesManagerProps<T>) {
     const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
     const [articles, setArticles] = useState<Article[]>([]);
+    const [professionals, setProfessionals] = useState<Professional[]>([]);
 
     // Form State for Article
     const [articleFormData, setArticleFormData] = useState({
@@ -42,9 +49,10 @@ export default function ArticlesManager<T extends ArticleFormFields>({
     });
 
     const loadAllData = async () => {
-        const [arts] = await Promise.all([getArticles()]);
+        const [arts, profs] = await Promise.all([getArticles(), getProfessionalsForAdmin()]);
         setArticles(arts);
         onArticlesChange?.(arts);
+        setProfessionals(profs);
     };
 
     const handleEditArticle = (article: Article) => {
@@ -180,6 +188,7 @@ export default function ArticlesManager<T extends ArticleFormFields>({
                 isSubmitting={isSubmittingArticle}
                 editingArticleId={editingArticleId}
                 onCancelEdit={resetArticleForm}
+                professionals={professionals}
             />
 
             {articles.length === 0 ? (
