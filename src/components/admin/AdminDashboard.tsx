@@ -48,9 +48,7 @@ export const AdminDashboard: React.FC = () => {
         addressChanged: boolean;
     } | null>(null);
     // Búsqueda de profesionales
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchFocused, setSearchFocused] = useState(false);
-    const [appliedFilter, setAppliedFilter] = useState<string | null>(null);
+
     const [sortBy, setSortBy] = useState<ProfessionalsSortBy>('created_at');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [sortLoading, setSortLoading] = useState(false);
@@ -505,65 +503,6 @@ export const AdminDashboard: React.FC = () => {
         loadAllData();
     };
 
-    // ===== Búsqueda de profesionales =====
-    const normalize = (s: string) =>
-        s
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
-
-    const filteredProfessionals = React.useMemo(() => {
-        if (!appliedFilter) return professionals;
-        const q = normalize(appliedFilter.trim());
-        return professionals.filter(
-            (p) => normalize(p.name).includes(q) || (p.license && normalize(p.license).includes(q)),
-        );
-    }, [professionals, appliedFilter]);
-
-    const suggestions = React.useMemo(() => {
-        const q = normalize(searchQuery.trim());
-        if (q.length < 3) return [];
-        return professionals
-            .filter(
-                (p) =>
-                    normalize(p.name).includes(q) ||
-                    (p.license && normalize(p.license).includes(q)),
-            )
-            .slice(0, 8);
-    }, [professionals, searchQuery]);
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setSearchQuery(value);
-        if (value.trim() === '') {
-            setAppliedFilter(null);
-        }
-    };
-
-    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const q = searchQuery.trim();
-            setAppliedFilter(q.length === 0 ? null : q);
-            setSearchFocused(false);
-        }
-        if (e.key === 'Escape') {
-            setSearchFocused(false);
-        }
-    };
-
-    const handleSelectSuggestion = (prof: Professional) => {
-        setSearchQuery(prof.name);
-        setAppliedFilter(prof.name);
-        setSearchFocused(false);
-    };
-
-    const handleClearSearch = () => {
-        setSearchQuery('');
-        setAppliedFilter(null);
-        setSearchFocused(false);
-    };
-
     const handleHiredAtKeepCurrent = async () => {
         if (!pendingHiredAtAction) return;
         setShowHiredAtModal(false);
@@ -652,18 +591,7 @@ export const AdminDashboard: React.FC = () => {
             {/* TAB 1: LIST OF PROFESSIONALS */}
             {activeTab === 'list' && (
                 <ProfessionalsList
-                    searchQuery={searchQuery}
-                    onSearchChange={handleSearchChange}
-                    onSearchKeyDown={handleSearchKeyDown}
-                    onSearchFocus={() => setSearchFocused(true)}
-                    onSearchBlur={() => setTimeout(() => setSearchFocused(false), 150)}
-                    onClearSearch={handleClearSearch}
-                    searchFocused={searchFocused}
-                    suggestions={suggestions}
-                    onSelectSuggestion={handleSelectSuggestion}
-                    appliedFilter={appliedFilter}
                     professionals={professionals}
-                    filteredProfessionals={filteredProfessionals}
                     formatHiredAt={formatDateAR}
                     onToggleFeatured={handleToggleFeatured}
                     onToggleActive={handleToggleActive}
