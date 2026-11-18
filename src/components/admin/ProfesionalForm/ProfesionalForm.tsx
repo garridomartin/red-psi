@@ -312,7 +312,6 @@ export default function ProfesionalForm({
                     </label>
                     <input
                         type='url'
-                        required
                         value={profFormData.instagram_url}
                         onChange={(e) => patch({ instagram_url: e.target.value })}
                         placeholder='https://instagram.com/nombre.psi'
@@ -354,7 +353,6 @@ export default function ProfesionalForm({
                 </label>
                 <textarea
                     rows={4}
-                    required
                     value={profFormData.bio}
                     onChange={(e) => patch({ bio: e.target.value })}
                     placeholder='Describí la trayectoria, enfoque teórico y motivos de consulta frecuentes...'

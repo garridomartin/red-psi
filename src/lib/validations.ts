@@ -31,7 +31,9 @@ export const professionalSchema = z.object({
     lng: z.coerce.number(),
     instagram_url: z
         .string()
-        .url('Debe ser una URL válida de Instagram (https://instagram.com/...)'),
+        .refine((val) => val === '' || /^https?:\/\/(www\.)?instagram\.com\//i.test(val), {
+            message: 'Debe ser una URL de Instagram (https://instagram.com/...)',
+        }),
     contact_email: z.string().email('Debe ser un email válido'),
     contact_phone: z.string().min(8, 'Ingresá un teléfono de contacto'),
     whatsapp_number: z.string().optional(),

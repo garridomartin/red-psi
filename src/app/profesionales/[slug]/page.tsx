@@ -122,6 +122,7 @@ export default function ProfessionalDetailPage() {
                         </div>
 
                         {/* Direct Contact Buttons */}
+
                         <div className='space-y-2'>
                             <button
                                 onClick={() => setContactModalOpen(true)}
@@ -131,15 +132,17 @@ export default function ProfessionalDetailPage() {
                                 <span>Contactar profesional</span>
                             </button>
 
-                            <a
-                                href={professional.instagram_url}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                className='w-full py-3 px-4 rounded-xl border border-pink-200 dark:border-pink-900/50 bg-pink-50/70 dark:bg-pink-950/30 hover:bg-pink-100 text-pink-700 dark:text-pink-300 font-bold text-xs transition-colors flex items-center justify-center gap-2'
-                            >
-                                <Instagram className='w-4 h-4' />
-                                <span>Ver perfil en Instagram</span>
-                            </a>
+                            {professional.instagram_url && (
+                                <a
+                                    href={professional.instagram_url}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    className='w-full py-3 px-4 rounded-xl border border-pink-200 dark:border-pink-900/50 bg-pink-50/70 dark:bg-pink-950/30 hover:bg-pink-100 text-pink-700 dark:text-pink-300 font-bold text-xs transition-colors flex items-center justify-center gap-2'
+                                >
+                                    <Instagram className='w-4 h-4' />
+                                    <span>Ver perfil en Instagram</span>
+                                </a>
+                            )}
                         </div>
                     </div>
 

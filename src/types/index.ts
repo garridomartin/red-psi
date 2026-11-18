@@ -57,7 +57,7 @@ export interface Professional {
     city?: string;
     lat: number;
     lng: number;
-    instagram_url: string;
+    instagram_url: string | null;
     contact_email: string;
     contact_phone: string;
     whatsapp_number?: string;
@@ -73,19 +73,32 @@ export interface Professional {
     hired_at: string;
 }
 
-export type ProfFormData = Required<
-    Omit<
-        Professional,
-        | 'id'
-        | 'slug'
-        | 'birth_date'
-        | 'whatsapp_number'
-        | 'example'
-        | 'created_at'
-        | 'updated_at'
-        | 'deleted_at'
-    >
->;
+export type ProfFormData = {
+    name: string;
+    title: string;
+    license: string;
+    bio: string;
+    photo_url: string;
+    gender: 'femenino' | 'masculino' | 'no-binario' | 'otro';
+    age: number;
+    specialties: string[];
+    insurances: string[];
+    modality: 'presencial' | 'online' | 'ambas';
+    address: string;
+    neighborhood: string;
+    city: string;
+    lat: number;
+    lng: number;
+    instagram_url: string;
+    contact_email: string;
+    contact_phone: string;
+    session_price: string;
+    approach: string;
+    client_age: string[];
+    is_active: boolean;
+    is_featured: boolean;
+    hired_at: string;
+};
 
 export type MatriculaStatus = {
     checking: boolean;

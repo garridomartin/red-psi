@@ -108,16 +108,16 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
                                     </h3>
                                 </Link>
                                 {/* Outgoing Instagram Link */}
-                                <a
-                                    href={professional.instagram_url}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='p-1.5 rounded-lg text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/50 transition-colors shrink-0'
-                                    title={`Ver Instagram de ${professional.name}`}
-                                    aria-label={`Ver Instagram de ${professional.name}`}
-                                >
-                                    <Instagram className='w-4 h-4' />
-                                </a>
+                                {professional.instagram_url && (
+                                    <a
+                                        href={professional.instagram_url}
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        className='p-1.5 rounded-lg text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/50 transition-colors shrink-0'
+                                    >
+                                        <Instagram className='w-4 h-4' aria-hidden='true' />
+                                    </a>
+                                )}
                             </div>
 
                             <div className='flex items-center gap-2 mt-1 text-xs text-neutral-500 dark:text-neutral-400'>

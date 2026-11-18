@@ -114,7 +114,7 @@ export default function HomePage() {
                                 <span className='font-bold text-neutral-900 dark:text-neutral-100 text-base'>
                                     100%
                                 </span>
-                                <span>Matriculados</span>
+                                <span>Matriculados en COLPSIBA</span>
                             </div>
                             <div className='flex flex-col items-center gap-1'>
                                 <span className='font-bold text-neutral-900 dark:text-neutral-100 text-base'>

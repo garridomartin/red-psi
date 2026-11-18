@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
     city TEXT DEFAULT 'La Plata',
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
-    instagram_url TEXT NOT NULL,
+    instagram_url TEXT,
     contact_email TEXT NOT NULL,
     contact_phone TEXT NOT NULL,
     session_price TEXT,

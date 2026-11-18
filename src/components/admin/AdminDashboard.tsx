@@ -182,7 +182,7 @@ export const AdminDashboard: React.FC = () => {
             city: 'La Plata',
             lat: -34.9192637,
             lng: -57.9558382,
-            instagram_url: 'https://instagram.com/',
+            instagram_url: '',
             contact_email: '',
             contact_phone: '+549221',
             session_price: 'consultar',
@@ -228,7 +228,7 @@ export const AdminDashboard: React.FC = () => {
             city: prof.city || 'La Plata',
             lat: prof.lat,
             lng: prof.lng,
-            instagram_url: prof.instagram_url,
+            instagram_url: prof.instagram_url ?? '',
             contact_email: prof.contact_email,
             contact_phone: prof.contact_phone,
             session_price: prof.session_price || '',
@@ -366,7 +366,6 @@ export const AdminDashboard: React.FC = () => {
 
     // Función auxiliar que hace el guardado real
     const persistProf = async (finalData: any) => {
-        // 1. Reemplazamos toast.loading por toast.custom
         const loadingId = toast.custom(
             () => (
                 <div className='flex items-center gap-3 w-full shadow-lg font-sans'>
