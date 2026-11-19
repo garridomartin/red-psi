@@ -14,6 +14,7 @@ import {
     getProfessionalsForAdmin,
     ProfessionalsSortBy,
     SortDir,
+    getArticles,
 } from '@/lib/data/dataStore';
 
 import { professionalSchema } from '@/lib/validations';
@@ -31,6 +32,7 @@ export const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'list' | 'create-prof' | 'articles' | 'stats'>(
         'list',
     );
+    const [articles, setArticles] = useState<Article[]>([]);
     const [professionals, setProfessionals] = useState<Professional[]>([]);
     const [originalProf, setOriginalProf] = useState<Professional | null>(null);
     const [articlesCount, setArticlesCount] = useState(0);
@@ -114,7 +116,11 @@ export const AdminDashboard: React.FC = () => {
 
     const loadAllData = useCallback(async () => {
         setSortLoading(true);
-        const [profs] = await Promise.all([getProfessionalsForAdmin({ sortBy, sortDir })]);
+        const [arts, profs] = await Promise.all([
+            getArticles(),
+            getProfessionalsForAdmin({ sortBy, sortDir }),
+        ]);
+        setArticles(arts);
         setProfessionals(profs);
         setStats(getStats());
         setSortLoading(false);
@@ -622,7 +628,12 @@ export const AdminDashboard: React.FC = () => {
 
             {/* TAB 3: ARTICLES MANAGEMENT */}
             <div className={activeTab === 'articles' ? '' : 'hidden'}>
-                <ArticlesManager onArticlesChange={handleArticlesChange} />
+                <ArticlesManager
+                    professionals={professionals}
+                    articles={articles}
+                    onRefresh={loadAllData}
+                    onArticlesChange={handleArticlesChange}
+                />
             </div>
 
             {/* TAB 4: STATS & CATALOG MANAGEMENT */}

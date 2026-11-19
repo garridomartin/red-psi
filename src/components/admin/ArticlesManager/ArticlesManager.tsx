@@ -16,22 +16,25 @@ import {
 import { toast } from 'sonner';
 
 interface ArticlesManagerProps<T extends ArticleFormFields> {
-    // opcionales
     isSubmittingArticle?: boolean;
     deletingArticleId?: string | null;
     emptyStateText?: string;
+    professionals: Professional[];
+    articles: Article[];
+    onRefresh: () => Promise<void> | void;
     onArticlesChange?: (articles: Article[]) => void;
 }
 
 export default function ArticlesManager<T extends ArticleFormFields>({
-    onArticlesChange,
     isSubmittingArticle = false,
     deletingArticleId = null,
     emptyStateText = 'Todavía no hay artículos publicados.',
+    professionals,
+    articles,
+    onRefresh,
+    onArticlesChange,
 }: ArticlesManagerProps<T>) {
     const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [professionals, setProfessionals] = useState<Professional[]>([]);
 
     // Form State for Article
     const [articleFormData, setArticleFormData] = useState({
@@ -47,13 +50,6 @@ export default function ArticlesManager<T extends ArticleFormFields>({
         tags: ['Salud Mental', 'Terapia'],
         is_published: true,
     });
-
-    const loadAllData = async () => {
-        const [arts, profs] = await Promise.all([getArticles(), getProfessionalsForAdmin()]);
-        setArticles(arts);
-        onArticlesChange?.(arts);
-        setProfessionals(profs);
-    };
 
     const handleEditArticle = (article: Article) => {
         setEditingArticleId(article.id);
@@ -116,7 +112,7 @@ export default function ArticlesManager<T extends ArticleFormFields>({
                 is_published: true,
             });
 
-            await loadAllData();
+            await onRefresh();
         } catch (err: any) {
             notifyError(`Error al guardar: ${err.message}`);
         }
@@ -132,7 +128,7 @@ export default function ArticlesManager<T extends ArticleFormFields>({
                     const t = toast.loading('Eliminando artículo…');
                     try {
                         await deleteArticle(id);
-                        await loadAllData();
+                        await onRefresh();
                         toast.success('Artículo eliminado.', { id: t });
                     } catch (err: any) {
                         console.error('Error eliminando artículo:', err);
@@ -171,8 +167,8 @@ export default function ArticlesManager<T extends ArticleFormFields>({
     useEffect(() => {
         // Limpiar formularios AL MONTAR (garantiza que arranquen vacíos)
         resetArticleForm();
-        loadAllData();
-        const handleSync = () => loadAllData();
+        onRefresh();
+        const handleSync = () => onRefresh();
         window.addEventListener('red_epsilon_data_changed', handleSync);
         return () => {
             window.removeEventListener('red_epsilon_data_changed', handleSync);
