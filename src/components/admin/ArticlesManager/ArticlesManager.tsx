@@ -22,7 +22,6 @@ interface ArticlesManagerProps<T extends ArticleFormFields> {
     professionals: Professional[];
     articles: Article[];
     onRefresh: () => Promise<void> | void;
-    onArticlesChange?: (articles: Article[]) => void;
 }
 
 export default function ArticlesManager<T extends ArticleFormFields>({
@@ -32,7 +31,6 @@ export default function ArticlesManager<T extends ArticleFormFields>({
     professionals,
     articles,
     onRefresh,
-    onArticlesChange,
 }: ArticlesManagerProps<T>) {
     const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
 

@@ -33,9 +33,9 @@ export const AdminDashboard: React.FC = () => {
         'list',
     );
     const [articles, setArticles] = useState<Article[]>([]);
+    const articlesCount = articles.length;
     const [professionals, setProfessionals] = useState<Professional[]>([]);
     const [originalProf, setOriginalProf] = useState<Professional | null>(null);
-    const [articlesCount, setArticlesCount] = useState(0);
 
     const [stats, setStats] = useState<AppStats>({
         totalViews: 0,
@@ -527,10 +527,6 @@ export const AdminDashboard: React.FC = () => {
         await runGeocodeAndPersist({ ...action.formData, hired_at: today }, action.addressChanged);
     };
 
-    const handleArticlesChange = useCallback((arts: Article[]) => {
-        setArticlesCount(arts.length);
-    }, []);
-
     return (
         <div className='space-y-8'>
             {/* Header Info */}
@@ -632,7 +628,6 @@ export const AdminDashboard: React.FC = () => {
                     professionals={professionals}
                     articles={articles}
                     onRefresh={loadAllData}
-                    onArticlesChange={handleArticlesChange}
                 />
             </div>
 
